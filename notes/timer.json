@@ -1,0 +1,30 @@
+{
+  "timers": [
+    {
+      "name": "Z A L A M A",
+      "builder_apprentice_level": "1",
+      "builders": [
+        {
+          "id": "1",
+          "title": "Archer Tower",
+          "time_duration": {
+            "days": 0,
+            "hours": 5,
+            "minutes": 0
+          },
+          "started_date": "2024-09-07T12:00:00Z"
+        },
+        {
+          "id": "2",
+          "title": "Archer Tower",
+          "time_duration": {
+            "days": 0,
+            "hours": 5,
+            "minutes": 0
+          },
+          "started_date": "2024-09-07T12:00:00Z"
+        }
+      ]
+    }
+  ]
+}

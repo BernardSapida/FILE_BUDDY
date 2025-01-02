@@ -1,0 +1,68 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+generator zod {
+  provider              = "zod-prisma"
+  output                = "./zod"
+  relationModel         = true
+  modelCase             = "camelCase"
+  modelSuffix           = "Schema"
+  useDecimalJs          = true
+  prismaJsonNullability = true
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+enum UpgradeType {
+  BUILDING
+  LABORATORY
+}
+
+enum League {
+  BRONZE
+  SILVER
+  GOLD
+  CRYSTAL
+  MASTER
+  CHAMPION
+  TITAN
+  LEGEND
+}
+
+model Timer {
+  id                       String    @id @default(auto()) @map("_id") @db.ObjectId
+  name                     String
+  goldpass                 Boolean
+  league                   League
+  builder_apprentice_level Int
+  builders                 Builder[]
+  createdAt                DateTime  @default(now())
+  updatedAt                DateTime  @updatedAt
+}
+
+model Builder {
+  id             String       @id @default(auto()) @map("_id") @db.ObjectId
+  timerId        String       @db.ObjectId
+  title          String
+  started_date   DateTime
+  upgrade_type   UpgradeType
+  time_duration  TimeDuration @relation(fields: [timeDurationId], references: [id])
+  timeDurationId String       @unique @db.ObjectId
+
+  Timer Timer @relation(fields: [timerId], references: [id])
+}
+
+model TimeDuration {
+  id      String   @id @default(auto()) @map("_id") @db.ObjectId
+  days    Int
+  hours   Int
+  minutes Int
+  Builder Builder?
+}
