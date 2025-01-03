@@ -1,12 +1,35 @@
-import { Cog, HomeIcon } from 'lucide-react';
-
-type AdditionalLinks = {
-   title: string;
+// config/nav.ts
+type NavLink = {
+   label: string;
+   href: string;
 };
 
-export const defaultLinks = [
-   { href: '/', title: 'Home', icon: HomeIcon },
-   { href: '/account', title: 'Account', icon: Cog }
-];
+type UserNavConfig = {
+   [role: string]: NavLink[];
+};
 
-export const additionalLinks: AdditionalLinks[] = [];
+const navConfig: UserNavConfig = {
+   user: [
+      { label: 'Folders', href: '/folders' },
+      { label: 'Favorites', href: '/favorites' },
+      { label: 'Archives', href: '/archives' },
+      { label: 'Trash', href: '/trash' }
+   ]
+};
+
+const generateRouteAccessMap = (): RouteAccessMap => {
+   const map: RouteAccessMap = {};
+
+   Object.entries(navConfig).forEach(([role, links]) => {
+      links.forEach((link) => {
+         if (!map[link.href]) {
+            map[link.href] = [];
+         }
+         map[link.href].push(role as Role);
+      });
+   });
+   return map;
+};
+
+export const getLinksForRole = (role: Role): NavLink[] => navConfig[role];
+export const routeAccessMap = generateRouteAccessMap();

@@ -20,49 +20,45 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum UpgradeType {
-  BUILDING
-  LABORATORY
+model User {
+  id          String @id @default(auto()) @map("_id") @db.ObjectId
+  clerkUserId String @unique
+  type        String @default("user")
+  firstname   String
+  lastname    String
+  email       String @unique
+
+  folders   Folder[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
-enum League {
-  BRONZE
-  SILVER
-  GOLD
-  CRYSTAL
-  MASTER
-  CHAMPION
-  TITAN
-  LEGEND
+model Folder {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  folder_name String
+  files       File[]
+  favorited   Boolean  @default(false)
+  trashed     Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  userId String @db.ObjectId
+  user   User   @relation(fields: [userId], references: [id])
 }
 
-model Timer {
-  id                       String    @id @default(auto()) @map("_id") @db.ObjectId
-  name                     String
-  goldpass                 Boolean
-  league                   League
-  builder_apprentice_level Int
-  builders                 Builder[]
-  createdAt                DateTime  @default(now())
-  updatedAt                DateTime  @updatedAt
-}
+model File {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  filename   String
+  asset_id   String   @unique
+  bytes      Int
+  type       String
+  secure_url String
+  favorited  Boolean  @default(false)
+  archived   Boolean  @default(false)
+  trashed    Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
-model Builder {
-  id             String       @id @default(auto()) @map("_id") @db.ObjectId
-  timerId        String       @db.ObjectId
-  title          String
-  started_date   DateTime
-  upgrade_type   UpgradeType
-  time_duration  TimeDuration @relation(fields: [timeDurationId], references: [id])
-  timeDurationId String       @unique @db.ObjectId
-
-  Timer Timer @relation(fields: [timerId], references: [id])
-}
-
-model TimeDuration {
-  id      String   @id @default(auto()) @map("_id") @db.ObjectId
-  days    Int
-  hours   Int
-  minutes Int
-  Builder Builder?
+  folderId String @db.ObjectId
+  folder   Folder @relation(fields: [folderId], references: [id])
 }
