@@ -1,3 +1,4 @@
+import { trpc } from '@/lib/trpc/client';
 import { Button } from '@nextui-org/react';
 import { Dispatch, FunctionComponent, SetStateAction, useState } from 'react';
 import { FaHeart, FaRegHeart } from 'react-icons/fa';
@@ -15,24 +16,23 @@ const FavoriteToggle: FunctionComponent<FavoriteToggleProps> = ({
    setFiles
 }) => {
    const [favorite, setFavorite] = useState<boolean>(favorited);
+   const favoriteMutation = trpc.file.setFileFavorite.useMutation({
+      onSuccess: () => {
+         setFiles((prevFiles) =>
+            prevFiles.map((file) =>
+               file.id === fileId ? { ...file, favorited: !file.favorited } : file
+            )
+         );
+         setFavorite((prevFavorite) => !prevFavorite);
+         toast.success(`Successfully ${favorite ? 'removed' : 'added'} to favorite files`);
+      },
+      onError: () => {
+         toast.error('There was an error, please try again');
+      }
+   });
 
    const handleFavoriteChange = () => {
-      toast.promise(new Promise((resolve) => setTimeout(() => resolve({}), 1000)), {
-         loading: ` ${favorite ? 'Removing' : 'Adding'} to favorite files...`,
-         success: () => {
-            setFiles((prevFiles) =>
-               prevFiles.map((file) =>
-                  file.id === fileId ? { ...file, favorited: !file.favorited } : file
-               )
-            );
-            setFavorite((prevFavorite) => !prevFavorite);
-
-            return `Successfully ${favorite ? 'removed' : 'added'} to favorite files!`;
-         },
-         error: () => {
-            return 'There was an error, please try again';
-         }
-      });
+      favoriteMutation.mutate({ fileId, favorited: !favorited });
    };
 
    return (

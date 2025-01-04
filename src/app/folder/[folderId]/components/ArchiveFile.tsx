@@ -4,6 +4,7 @@ import { Dispatch, FunctionComponent, SetStateAction } from 'react';
 import { IoArchiveOutline } from 'react-icons/io5';
 import { BsArchive } from 'react-icons/bs';
 import { toast } from 'sonner';
+import { trpc } from '@/lib/trpc/client';
 
 interface ArchiveFileProps {
    fileId: string;
@@ -13,18 +14,18 @@ interface ArchiveFileProps {
 const ArchiveFile: FunctionComponent<ArchiveFileProps> = ({ fileId, setFiles }) => {
    const pathname = usePathname();
    const archivePath = pathname === '/archives';
+   const archiveMutation = trpc.file.setFolderArchive.useMutation({
+      onSuccess: () => {
+         setFiles((prevFiles) => prevFiles.filter((file) => file.id !== fileId));
+         toast.success(`Successfully ${archivePath ? 'unarchived' : 'archived'} file`);
+      },
+      onError: () => {
+         toast.error('There was an error, please try again');
+      }
+   });
 
    const archiveFile = async () => {
-      toast.promise(new Promise((resolve) => setTimeout(() => resolve({}), 1000)), {
-         loading: 'Archiving file...',
-         success: () => {
-            setFiles((prevFiles) => prevFiles.filter((file) => file.id !== fileId));
-            return `Successfully ${archivePath ? 'unarchived' : 'archived'} file!`;
-         },
-         error: () => {
-            return 'There was an error, please try again';
-         }
-      });
+      archiveMutation.mutate({ fileId, archived: !archivePath });
    };
 
    return (

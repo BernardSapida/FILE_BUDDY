@@ -41,6 +41,21 @@ export const filesRouter = router({
             return res;
          }
       ),
+   renameFile: publicProcedure
+      .input(
+         z.object({
+            fileId: z.string().min(1, { message: 'File id is required' }),
+            filename: z.string().min(1, { message: 'Filename is required' })
+         })
+      )
+      .mutation(async ({ input: { fileId, filename } }) => {
+         const res = await db.file.update({
+            where: { id: fileId },
+            data: { filename }
+         });
+
+         return res;
+      }),
    getFiles: publicProcedure
       .input(
          z.object({
@@ -50,11 +65,44 @@ export const filesRouter = router({
       .query(async ({ input: { folderId } }) => {
          const res = await db.folder.findFirst({
             where: { id: folderId },
-            select: { files: true }
+            select: {
+               folder_name: true,
+               files: {
+                  where: { AND: { archived: false, trashed: false } }
+               }
+            }
          });
 
          return res;
       }),
+   getFavoritedFiles: publicProcedure.query(async ({ ctx }) => {
+      const clerkUserId = ctx.session?.user.id;
+      const res = await db.file.findMany({
+         where: {
+            folder: { user: { clerkUserId } },
+            favorited: true,
+            AND: { archived: false, trashed: false }
+         }
+      });
+
+      return res;
+   }),
+   getTrashedFiles: publicProcedure.query(async ({ ctx }) => {
+      const clerkUserId = ctx.session?.user.id;
+      const res = await db.file.findMany({
+         where: { folder: { user: { clerkUserId } }, trashed: true }
+      });
+
+      return res;
+   }),
+   getArchivedFiles: publicProcedure.query(async ({ ctx }) => {
+      const clerkUserId = ctx.session?.user.id;
+      const res = await db.file.findMany({
+         where: { folder: { user: { clerkUserId } }, archived: true }
+      });
+
+      return res;
+   }),
    setFolderArchive: publicProcedure
       .input(
          z.object({
@@ -62,7 +110,7 @@ export const filesRouter = router({
             archived: z.boolean()
          })
       )
-      .query(async ({ input: { fileId, archived } }) => {
+      .mutation(async ({ input: { fileId, archived } }) => {
          const res = await db.file.update({
             where: { id: fileId },
             data: { archived }
@@ -77,7 +125,7 @@ export const filesRouter = router({
             favorited: z.boolean()
          })
       )
-      .query(async ({ input: { fileId, favorited } }) => {
+      .mutation(async ({ input: { fileId, favorited } }) => {
          const res = await db.file.update({
             where: { id: fileId },
             data: { favorited }
@@ -92,10 +140,23 @@ export const filesRouter = router({
             trashed: z.boolean()
          })
       )
-      .query(async ({ input: { fileIds, trashed } }) => {
+      .mutation(async ({ input: { fileIds, trashed } }) => {
          const res = await db.file.updateMany({
-            where: { id: { in: fileIds } },
+            where: { asset_id: { in: fileIds } },
             data: { trashed }
+         });
+
+         return res;
+      }),
+   deleteFiles: publicProcedure
+      .input(
+         z.object({
+            fileIds: z.array(z.string()).min(1, { message: 'At least one folder ID is required' })
+         })
+      )
+      .mutation(async ({ input: { fileIds } }) => {
+         const res = await db.file.deleteMany({
+            where: { asset_id: { in: fileIds } }
          });
 
          return res;

@@ -29,6 +29,7 @@ import TrashButton from './TrashButton';
 
 interface FilesTableProps {
    files: File[];
+   folderId?: string;
    showHeaderButtons?: boolean;
    isLoading: boolean;
 }
@@ -50,12 +51,14 @@ export const statusOptions = [
 
 const FilesTable: FunctionComponent<FilesTableProps> = ({
    files: userFiles,
+   folderId,
    showHeaderButtons = true,
    isLoading
 }) => {
    const pathname = usePathname();
    const archivePath = pathname === '/archives';
    const trashPath = pathname === '/trash';
+   const favoritePath = pathname === '/favorites';
    const [files, setFiles] = useState<File[]>([]);
    const [filterValue, setFilterValue] = useState('');
    const [selectedKeys, setSelectedKeys] = useState(new Set([]));
@@ -201,7 +204,12 @@ const FilesTable: FunctionComponent<FilesTableProps> = ({
                />
                {showHeaderButtons && (
                   <div className="flex gap-2">
-                     {!archivePath && !trashPath && <CloudinaryUploadButton setFiles={setFiles} />}
+                     {!archivePath && !trashPath && !favoritePath && (
+                        <CloudinaryUploadButton
+                           folderId={folderId!}
+                           setFiles={setFiles}
+                        />
+                     )}
                      {trashPath ? (
                         <>
                            <RestoreButton
@@ -313,7 +321,7 @@ const FilesTable: FunctionComponent<FilesTableProps> = ({
             )}
          </TableHeader>
          <TableBody
-            emptyContent={'No results found'}
+            emptyContent={'No files'}
             isLoading={isLoading}
             loadingContent={
                <Spinner

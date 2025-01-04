@@ -1,3 +1,4 @@
+import { trpc } from '@/lib/trpc/client';
 import { Form } from '@nextui-org/form';
 import {
    Button,
@@ -9,7 +10,7 @@ import {
    ModalHeader,
    useDisclosure
 } from '@nextui-org/react';
-import { Dispatch, FunctionComponent, SetStateAction } from 'react';
+import { Dispatch, FunctionComponent, SetStateAction, useState } from 'react';
 import { CiEdit } from 'react-icons/ci';
 import { IoCheckmark } from 'react-icons/io5';
 import { toast } from 'sonner';
@@ -26,29 +27,29 @@ const ChangeFoldername: FunctionComponent<ChangeFoldernameProps> = ({
    setFolders
 }) => {
    const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure();
+   const [loading, setLoading] = useState<boolean>(false);
+   const changeMutation = trpc.folder.renameFolder.useMutation({
+      onSuccess: (data) => {
+         setFolders((prevFolders) =>
+            prevFolders.map((folder) =>
+               folder.id === folderId ? { ...folder, folder_name: data.folder_name } : folder
+            )
+         );
+         toast.success('Successfully changed folder name');
+         onClose();
+         setLoading(false);
+      },
+      onError: () => {
+         toast.error('There was an error, please try again');
+         setLoading(false);
+      }
+   });
 
    const onSubmit = (e: any) => {
       e.preventDefault();
-
+      setLoading(true);
       const data = Object.fromEntries(new FormData(e.currentTarget)) as { folderName: string };
-
-      toast.promise(new Promise((resolve) => setTimeout(() => resolve({}), 1000)), {
-         loading: 'Changing folder name...',
-         success: () => {
-            setFolders((prevFolders) =>
-               prevFolders.map((folder) =>
-                  folder.id === folderId ? { ...folder, folder_name: data.folderName } : folder
-               )
-            );
-
-            return 'Successfully changed folder name!';
-         },
-         error: () => {
-            return 'There was an error, please try again';
-         }
-      });
-
-      onClose();
+      changeMutation.mutate({ folderId, folder_name: data.folderName });
    };
 
    return (
@@ -90,11 +91,13 @@ const ChangeFoldername: FunctionComponent<ChangeFoldernameProps> = ({
                            <Button
                               type="submit"
                               size="sm"
-                              startContent={<IoCheckmark className="text-xl" />}
+                              startContent={!loading && <IoCheckmark className="text-xl" />}
                               color="primary"
                               className="ml-auto"
+                              isLoading={loading}
+                              isDisabled={loading}
                            >
-                              Save
+                              {loading ? 'Renaming...' : 'Rename'}
                            </Button>
                         </Form>
                      </ModalBody>

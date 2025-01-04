@@ -1,28 +1,39 @@
+import { trpc } from '@/lib/trpc/client';
 import { CldUploadButton } from 'next-cloudinary';
 import { Dispatch, FunctionComponent, SetStateAction } from 'react';
 import { FaPlus } from 'react-icons/fa';
+import { toast } from 'sonner';
 
 interface CloudinaryUploadButtonProps {
+   folderId: string;
    setFiles: Dispatch<SetStateAction<File[]>>;
 }
 
-const CloudinaryUploadButton: FunctionComponent<CloudinaryUploadButtonProps> = ({ setFiles }) => {
+const CloudinaryUploadButton: FunctionComponent<CloudinaryUploadButtonProps> = ({
+   folderId,
+   setFiles
+}) => {
+   const createMutation = trpc.file.createFile.useMutation({
+      onSuccess: (file) => {
+         setFiles((prevFiles) => [file as File, ...prevFiles]);
+         toast.success('Successfully uploaded file');
+      },
+      onError: () => {
+         toast.error('There was an error, please try again');
+      }
+   });
+
    const handleUploadSuccess = ({ info }: CloudinaryEvent) => {
-      setFiles((prevFIles) => [
-         {
-            id: new Date().toString(),
+      createMutation.mutate({
+         folderId,
+         file: {
             filename: info.original_filename,
             asset_id: info.asset_id,
             bytes: info.bytes,
             type: info.path.split('.')[1],
-            secure_url: info.secure_url,
-            favorited: false,
-            trashed: false,
-            createdAt: new Date(),
-            updatedAt: new Date()
-         } as any,
-         ...prevFIles
-      ]);
+            secure_url: info.secure_url
+         }
+      });
    };
 
    return (

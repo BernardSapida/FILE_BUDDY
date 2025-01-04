@@ -1,3 +1,4 @@
+import { trpc } from '@/lib/trpc/client';
 import {
    Button,
    Divider,
@@ -19,32 +20,30 @@ interface RestoreButtonProps {
 const RestoreButton: FunctionComponent<RestoreButtonProps> = ({ selectedKeys, setFolders }) => {
    const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure();
    const [loading, setLoading] = useState<boolean>(false);
-   const selectedAllFolders = selectedKeys.toString() == 'all';
+   const selectedFolders = [...(selectedKeys.values() as any)];
    const folderSize = selectedKeys.size;
+   const trashMutation = trpc.folder.setFolderTrash.useMutation({
+      onSuccess: () => {
+         setFolders((prevFolders) => {
+            if (selectedFolders.length == 0) return prevFolders;
+
+            return prevFolders.filter((folder) => {
+               if (!selectedFolders.includes(folder.id)) return folder;
+            });
+         });
+         toast.success('Successfully restored folder/s');
+         setLoading(false);
+         onClose();
+      },
+      onError: () => {
+         toast.error('There was an error, please try again');
+         setLoading(false);
+      }
+   });
 
    const restoreFolders = () => {
       setLoading(true);
-
-      toast.promise(new Promise((resolve) => setTimeout(() => resolve({}), 1000)), {
-         loading: 'Restoring folder/s...',
-         success: () => {
-            setFolders((prevFolders) => {
-               if (selectedAllFolders) return [];
-
-               return prevFolders.filter((folder) => {
-                  if (![...(selectedKeys.values() as any)].includes(folder.id)) return folder;
-               });
-            });
-            setLoading(false);
-
-            return 'Successfully restored folder/s!';
-         },
-         error: () => {
-            return 'There was an error, please try again';
-         }
-      });
-
-      onClose();
+      trashMutation.mutate({ folderIds: selectedFolders, trashed: false });
    };
 
    return (
@@ -70,9 +69,7 @@ const RestoreButton: FunctionComponent<RestoreButtonProps> = ({ selectedKeys, se
                      <ModalBody className="py-5">
                         <p>
                            Are you sure you want to restore{' '}
-                           <span className="font-semibold text-primary">
-                              {selectedAllFolders ? 'all' : folderSize} folder/s
-                           </span>
+                           <span className="font-semibold text-primary">{folderSize} folder/s</span>
                            ?
                         </p>
                         <Button
@@ -84,7 +81,7 @@ const RestoreButton: FunctionComponent<RestoreButtonProps> = ({ selectedKeys, se
                            onPress={restoreFolders}
                            isLoading={loading}
                         >
-                           {loading ? 'Restoring...' : 'Restore folders'}
+                           {loading ? 'Restoring folders...' : 'Restore folders'}
                         </Button>
                      </ModalBody>
                   </>

@@ -1,3 +1,4 @@
+import { trpc } from '@/lib/trpc/client';
 import { Form } from '@nextui-org/form';
 import {
    Button,
@@ -9,7 +10,7 @@ import {
    ModalHeader,
    useDisclosure
 } from '@nextui-org/react';
-import { Dispatch, FunctionComponent, SetStateAction } from 'react';
+import { Dispatch, FunctionComponent, SetStateAction, useState } from 'react';
 import { CiEdit } from 'react-icons/ci';
 import { IoCheckmark } from 'react-icons/io5';
 import { toast } from 'sonner';
@@ -26,30 +27,33 @@ const ChangeFilenameModal: FunctionComponent<ChangeFilenameModalProps> = ({
    setFiles
 }) => {
    const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure();
+   const [loading, setLoading] = useState<boolean>(false);
+
+   const changeMutation = trpc.file.renameFile.useMutation({
+      onSuccess: (data) => {
+         setFiles((prevFiles) =>
+            prevFiles.map((file) =>
+               file.id === fileId
+                  ? { ...file, filename: data.filename, updatedAt: new Date() }
+                  : file
+            )
+         );
+         toast.success('Successfully changed filename');
+         onClose();
+         setLoading(false);
+      },
+      onError: () => {
+         toast.error('There was an error, please try again');
+         setLoading(false);
+      }
+   });
 
    const onSubmit = (e: any) => {
       e.preventDefault();
+      setLoading(true);
 
       const data = Object.fromEntries(new FormData(e.currentTarget)) as { filename: string };
-
-      toast.promise(new Promise((resolve) => setTimeout(() => resolve({}), 1000)), {
-         loading: 'Changing filename...',
-         success: () => {
-            setFiles((prevFiles) =>
-               prevFiles.map((file) =>
-                  file.id === fileId
-                     ? { ...file, filename: data.filename, updatedAt: new Date() }
-                     : file
-               )
-            );
-            return `Successfully changed filename!`;
-         },
-         error: () => {
-            return 'There was an error, please try again';
-         }
-      });
-
-      onClose();
+      changeMutation.mutate({ fileId, filename: data.filename });
    };
 
    return (
@@ -91,11 +95,13 @@ const ChangeFilenameModal: FunctionComponent<ChangeFilenameModalProps> = ({
                            <Button
                               type="submit"
                               size="sm"
-                              startContent={<IoCheckmark className="text-xl" />}
+                              startContent={!loading && <IoCheckmark className="text-xl" />}
                               color="primary"
                               className="ml-auto"
+                              isLoading={loading}
+                              isDisabled={loading}
                            >
-                              Save
+                              {loading ? 'Renaming...' : 'Rename'}
                            </Button>
                         </Form>
                      </ModalBody>

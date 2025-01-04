@@ -1,3 +1,4 @@
+import { trpc } from '@/lib/trpc/client';
 import {
    Button,
    Divider,
@@ -19,35 +20,30 @@ interface DeleteButtonProps {
 const DeleteButton: FunctionComponent<DeleteButtonProps> = ({ selectedKeys, setFolders }) => {
    const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure();
    const [loading, setLoading] = useState<boolean>(false);
-   const selectedAllFolders = selectedKeys.toString() == 'all';
+   const selectedFolders = [...(selectedKeys.values() as any)];
    const folderSize = selectedKeys.size;
+   const deleteMutation = trpc.folder.deleteFolders.useMutation({
+      onSuccess: () => {
+         setFolders((prevFolders) => {
+            if (selectedFolders.length == 0) return prevFolders;
+
+            return prevFolders.filter((folder) => {
+               if (!selectedFolders.includes(folder.id)) return folder;
+            });
+         });
+         toast.success('Successfully deleted folder/s');
+         setLoading(false);
+         onClose();
+      },
+      onError: () => {
+         toast.error('There was an error, please try again');
+         setLoading(false);
+      }
+   });
 
    const deleteFolders = () => {
       setLoading(true);
-
-      toast.promise(new Promise((resolve) => setTimeout(() => resolve({}), 1000)), {
-         loading: 'Deleting folder/s...',
-         success: () => {
-            setFolders((prevFolders) => {
-               if (selectedAllFolders) return [];
-
-               return prevFolders.filter((folder) => {
-                  if (![...(selectedKeys.values() as any)].includes(folder.id)) return folder;
-               });
-            });
-
-            setLoading(false);
-
-            return 'Successfully deleted folder/s!';
-         },
-         error: () => {
-            setLoading(false);
-
-            return 'There was an error, please try again';
-         }
-      });
-
-      onClose();
+      deleteMutation.mutate({ folderIds: selectedFolders });
    };
 
    return (
@@ -73,10 +69,7 @@ const DeleteButton: FunctionComponent<DeleteButtonProps> = ({ selectedKeys, setF
                      <ModalBody className="py-5">
                         <p>
                            Are you sure you want to delete{' '}
-                           <span className="font-semibold text-danger">
-                              {selectedAllFolders ? 'all' : folderSize} folder/s
-                           </span>
-                           ?
+                           <span className="font-semibold text-danger">{folderSize} folder/s</span>?
                         </p>
                         <Button
                            type="submit"
@@ -85,9 +78,10 @@ const DeleteButton: FunctionComponent<DeleteButtonProps> = ({ selectedKeys, setF
                            color="danger"
                            className="ml-auto"
                            onPress={deleteFolders}
+                           isDisabled={loading}
                            isLoading={loading}
                         >
-                           {loading ? 'Deleting...' : 'Delete folders'}
+                           {loading ? 'Deleting folders...' : 'Delete folders'}
                         </Button>
                      </ModalBody>
                   </>

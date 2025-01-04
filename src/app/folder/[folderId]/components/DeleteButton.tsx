@@ -1,3 +1,4 @@
+import { trpc } from '@/lib/trpc/client';
 import {
    Button,
    Divider,
@@ -19,44 +20,41 @@ interface DeleteButtonProps {
 const DeleteButton: FunctionComponent<DeleteButtonProps> = ({ selectedKeys, setFiles }) => {
    const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure();
    const [loading, setLoading] = useState<boolean>(false);
-   const selectedAllFiles = selectedKeys.toString() === 'all';
+   const selectedFiles = [...(selectedKeys.values() as any)];
    const fileSize = selectedKeys.size;
+   const deleteMutation = trpc.file.deleteFiles.useMutation({
+      onSuccess: async () => {
+         setFiles((prevFiles) => {
+            if (selectedFiles.length == 0) return prevFiles;
+
+            return prevFiles.filter((file) => !selectedFiles.includes(file.asset_id));
+         });
+         await deleteFilesInCloudinary();
+         toast.success('Successfully deleted file/s');
+         setLoading(false);
+         onClose();
+      },
+      onError: () => {
+         toast.error('There was an error, please try again');
+         setLoading(false);
+      }
+   });
 
    const deleteFiles = () => {
       setLoading(true);
-
-      toast.promise(deleteFilesInCloudinary, {
-         loading: 'Deleting file/s...',
-         success: () => {
-            setFiles((prevFiles) => {
-               if (selectedAllFiles) return [];
-
-               return prevFiles.filter(
-                  (file) => ![...(selectedKeys.values() as any)].includes(file.asset_id)
-               );
-            });
-            setLoading(false);
-
-            return 'Successfully deleted file/s!';
-         },
-         error: () => {
-            setLoading(false);
-            return 'There was an error, please try again';
-         }
-      });
-
-      onClose();
+      deleteMutation.mutate({ fileIds: selectedFiles });
    };
 
    const deleteFilesInCloudinary = async () => {
       const requestOptions: RequestInit = {
          method: 'DELETE',
-         body: JSON.stringify({ asset_ids: [...(selectedKeys.values() as any)] })
+         body: JSON.stringify({ asset_ids: selectedFiles })
       };
 
       try {
          const response = await fetch('api/cloudinary', requestOptions);
          const data = await response.json();
+         console.log(data);
       } catch (error) {
          console.error('Error downloading file:', error);
       }
@@ -85,10 +83,7 @@ const DeleteButton: FunctionComponent<DeleteButtonProps> = ({ selectedKeys, setF
                      <ModalBody className="py-5">
                         <p>
                            Are you sure you want to delete{' '}
-                           <span className="font-semibold text-danger">
-                              {selectedAllFiles ? 'all' : fileSize} file/s
-                           </span>
-                           ?
+                           <span className="font-semibold text-danger">{fileSize} file/s</span>?
                         </p>
                         <Button
                            type="submit"

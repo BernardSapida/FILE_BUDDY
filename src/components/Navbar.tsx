@@ -37,7 +37,7 @@ export default function Menubar() {
          onMenuOpenChange={setIsMenuOpen}
          isMenuOpen={isMenuOpen}
          maxWidth="xl"
-         className={`${pathname == '/analysis-report' && 'hidden'} h-[80px] bg-white`}
+         className={`${pathname == '/analysis-report' && 'hidden'} h-[80px]`}
       >
          <NavbarContent>
             <NavbarBrand>

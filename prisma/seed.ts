@@ -18,7 +18,13 @@ async function main() {
    //    secure_url: 'http://localhost:3000'
    // });
    // getFiles('6778097c4b3dcb722dd799fc');
-   setFileFavorite('6778ab9d48548f16bf06f267', true);
+   createFile('6778a8ba96e3d0fc3a1e4abe', {
+      filename: 'File 1',
+      asset_id: '123',
+      bytes: 1000,
+      type: 'jpg',
+      secure_url: 'http://localhost:3000'
+   });
 }
 
 const createUser = async ({
@@ -96,6 +102,14 @@ const getFolders = async (clerkUserId: string) => {
    console.log(res);
 };
 
+const getFavoritedFolders = async (clerkUserId: string) => {
+   const res = await prisma.folder.findMany({
+      where: { user: { clerkUserId }, favorited: true }
+   });
+
+   console.log(res);
+};
+
 // TODO File
 const createFile = async (
    folderId: string,
@@ -135,6 +149,30 @@ const getFiles = async (folderId: string) => {
    const res = await prisma.folder.findFirst({
       where: { id: folderId },
       select: { files: true }
+   });
+
+   console.log(res);
+};
+
+const getFavoritedFiles = async (clerkUserId: string) => {
+   const res = await prisma.file.findMany({
+      where: { folder: { user: { clerkUserId } }, favorited: true }
+   });
+
+   console.log(res);
+};
+
+const getTrashedFiles = async (clerkUserId: string) => {
+   const res = await prisma.file.findMany({
+      where: { folder: { user: { clerkUserId } }, trashed: true }
+   });
+
+   console.log(res);
+};
+
+const getArchivedFiles = async (clerkUserId: string) => {
+   const res = await prisma.file.findMany({
+      where: { folder: { user: { clerkUserId } }, archived: true }
    });
 
    console.log(res);

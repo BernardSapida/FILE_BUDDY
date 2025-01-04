@@ -69,17 +69,53 @@ export const foldersRouter = router({
 
          return res;
       }),
-   getFolders: publicProcedure
+   getFolders: publicProcedure.query(async ({ ctx }) => {
+      const clerkUserId = ctx.session?.user.id;
+      const res = await db.user.findFirst({
+         where: { clerkUserId },
+         select: {
+            folders: {
+               where: { trashed: false },
+               include: { files: { select: { bytes: true } } }
+            }
+         }
+      });
+
+      return res;
+   }),
+   getTrashedFolders: publicProcedure.query(async ({ ctx }) => {
+      const clerkUserId = ctx.session?.user.id;
+      const res = await db.folder.findMany({
+         where: { user: { clerkUserId }, trashed: true },
+         include: { files: { select: { bytes: true } } }
+      });
+
+      return res;
+   }),
+   getFavoritedFolders: publicProcedure.query(async ({ ctx }) => {
+      const clerkUserId = ctx.session?.user.id;
+      const res = await db.folder.findMany({
+         where: { user: { clerkUserId }, favorited: true },
+         include: { files: { select: { bytes: true } } }
+      });
+
+      return res;
+   }),
+   deleteFolders: publicProcedure
       .input(
          z.object({
-            clerkUserId: z.string().min(1, { message: 'Clerk uuid is required' })
+            folderIds: z.array(z.string()).min(1, { message: 'At least one folder ID is required' })
          })
       )
-      .query(async ({ input: { clerkUserId } }) => {
-         const res = await db.user.findFirst({
-            where: { clerkUserId },
-            select: { folders: { include: { files: { select: { bytes: true } } } } }
-         });
+      .mutation(async ({ input: { folderIds } }) => {
+         const res = await db.$transaction([
+            db.file.deleteMany({
+               where: { folder: { id: { in: folderIds } } }
+            }),
+            db.folder.deleteMany({
+               where: { id: { in: folderIds } }
+            })
+         ]);
 
          return res;
       })

@@ -49,15 +49,23 @@
 
     TODO Page Folders
         Create folder
-        Get folders
+        Get folders (All, Favorited)
         Rename folder
+        Delete folders
         Favorite / Unfavorite
         Trash / Restore (multiple)
 
     TODO FILE
         Create file
-        Get files
+        Get files (All, Favorited, Trashed, Archived)
         Archive / Unarchive
         Favorite / Unfavorite
         Trash / Restore (multiple)
+
+    TODO
+        ? Login
+        ? Landing
+        ? Darkmode (Toggle)
+        ? Icons of FIleBuddy
+        ? Test different user/account
 */

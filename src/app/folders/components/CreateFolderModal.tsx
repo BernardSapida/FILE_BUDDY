@@ -9,9 +9,10 @@ import {
    ModalHeader,
    useDisclosure
 } from '@nextui-org/react';
-import { Dispatch, FunctionComponent, SetStateAction } from 'react';
+import { Dispatch, FunctionComponent, SetStateAction, useState } from 'react';
 import { FaPlus } from 'react-icons/fa';
 import { MdCreate } from 'react-icons/md';
+import { toast } from 'sonner';
 
 interface CreateFolderModalProps {
    setFolders: Dispatch<SetStateAction<Folder[]>>;
@@ -19,26 +20,39 @@ interface CreateFolderModalProps {
 
 const CreateFolderModal: FunctionComponent<CreateFolderModalProps> = ({ setFolders }) => {
    const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure();
+   const [loading, setLoading] = useState<boolean>(false);
 
    const onSubmit = (e: any) => {
       e.preventDefault();
 
+      setLoading(true);
+
       const data = Object.fromEntries(new FormData(e.currentTarget)) as { folderName: string };
 
-      setFolders((prevFolders) => [
-         {
-            id: new Date().toString(),
-            folder_name: data.folderName,
-            size: 0,
-            favorited: false,
-            trashed: false,
-            createdAt: new Date(),
-            updatedAt: new Date()
-         } as any,
-         ...prevFolders
-      ]);
+      toast.promise(new Promise((resolve) => setTimeout(() => resolve({}), 1000)), {
+         loading: 'Creating folder...',
+         success: () => {
+            setFolders((prevFolders) => [
+               {
+                  id: new Date().toString(),
+                  folder_name: data.folderName,
+                  files: [],
+                  favorited: false,
+                  trashed: false,
+                  createdAt: new Date(),
+                  updatedAt: new Date()
+               } as any,
+               ...prevFolders
+            ]);
+            setLoading(false);
+            onClose();
 
-      onClose();
+            return 'Successfully created folder!';
+         },
+         error: () => {
+            return 'There was an error, please try again';
+         }
+      });
    };
 
    return (
@@ -79,11 +93,13 @@ const CreateFolderModal: FunctionComponent<CreateFolderModalProps> = ({ setFolde
                            <Button
                               type="submit"
                               size="sm"
-                              startContent={<MdCreate />}
+                              startContent={!loading && <MdCreate />}
                               color="primary"
                               className="ml-auto"
+                              isLoading={loading}
+                              isDisabled={loading}
                            >
-                              Create
+                              {loading ? 'Creating folder...' : 'Create'}
                            </Button>
                         </Form>
                      </ModalBody>

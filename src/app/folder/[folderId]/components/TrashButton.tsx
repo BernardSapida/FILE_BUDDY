@@ -1,3 +1,4 @@
+import { trpc } from '@/lib/trpc/client';
 import {
    Button,
    Divider,
@@ -19,31 +20,30 @@ interface TrashButtonProps {
 const TrashButton: FunctionComponent<TrashButtonProps> = ({ selectedKeys, setFiles }) => {
    const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure();
    const [loading, setLoading] = useState<boolean>(false);
-   const selectedAllFiles = selectedKeys.toString() == 'all';
+   const selectedFiles = [...(selectedKeys.values() as any)];
    const fileSize = selectedKeys.size;
+   const trashMutation = trpc.file.setFileTrash.useMutation({
+      onSuccess: () => {
+         setFiles((prevFiles) => {
+            if (selectedFiles.length == 0) return prevFiles;
+
+            return prevFiles.filter((file) => {
+               if (!selectedFiles.includes(file.asset_id)) return file;
+            });
+         });
+         toast.success('Successfully move file/s to trash');
+         setLoading(false);
+         onClose();
+      },
+      onError: () => {
+         toast.error('There was an error, please try again');
+         setLoading(false);
+      }
+   });
 
    const addToTrash = () => {
       setLoading(true);
-
-      toast.promise(new Promise((resolve) => setTimeout(() => resolve({}), 1000)), {
-         loading: 'Moving file/s to trash...',
-         success: () => {
-            setFiles((prevFiles) => {
-               if (selectedAllFiles) return [];
-
-               return prevFiles.filter((file) => {
-                  if (![...(selectedKeys.values() as any)].includes(file.id)) return file;
-               });
-            });
-
-            return 'Successfully move file/s to trash!';
-         },
-         error: () => {
-            return 'There was an error, please try again';
-         }
-      });
-
-      onClose();
+      trashMutation.mutate({ fileIds: selectedFiles, trashed: true });
    };
 
    return (
@@ -51,7 +51,6 @@ const TrashButton: FunctionComponent<TrashButtonProps> = ({ selectedKeys, setFil
          <Button
             color="danger"
             startContent={<FiTrash2 />}
-            variant="flat"
             onPress={onOpen}
             isDisabled={selectedKeys.size == 0}
          >
@@ -69,10 +68,8 @@ const TrashButton: FunctionComponent<TrashButtonProps> = ({ selectedKeys, setFil
                      <ModalBody className="py-5">
                         <p>
                            Are you sure you want to move{' '}
-                           <span className="font-semibold text-danger">
-                              {selectedAllFiles ? 'all' : fileSize} file/s
-                           </span>{' '}
-                           to trash?
+                           <span className="font-semibold text-danger">{fileSize} file/s</span> to
+                           trash?
                         </p>
                         <Button
                            type="submit"
@@ -82,6 +79,7 @@ const TrashButton: FunctionComponent<TrashButtonProps> = ({ selectedKeys, setFil
                            className="ml-auto"
                            onPress={addToTrash}
                            isLoading={loading}
+                           isDisabled={loading}
                         >
                            {loading ? 'Moving...' : 'Move to trash'}
                         </Button>

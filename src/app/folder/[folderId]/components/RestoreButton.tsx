@@ -1,3 +1,4 @@
+import { trpc } from '@/lib/trpc/client';
 import {
    Button,
    Divider,
@@ -20,31 +21,31 @@ interface RestoreButtonProps {
 const RestoreButton: FunctionComponent<RestoreButtonProps> = ({ selectedKeys, setFiles }) => {
    const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure();
    const [loading, setLoading] = useState<boolean>(false);
-   const selectedAllFiles = selectedKeys.toString() == 'all';
+   const selectedFiles = [...(selectedKeys.values() as any)];
    const fileSize = selectedKeys.size;
+   const trashMutation = trpc.file.setFileTrash.useMutation({
+      onSuccess: () => {
+         setFiles((prevFiles) => {
+            if (selectedFiles.length == 0) return prevFiles;
+
+            return prevFiles.filter((file) => {
+               if (!selectedFiles.includes(file.asset_id)) return file;
+            });
+         });
+         toast.success('Successfully restored file/s');
+         setLoading(false);
+         onClose();
+      },
+      onError: () => {
+         toast.error('There was an error, please try again');
+         setLoading(false);
+      }
+   });
 
    const restoreFiles = () => {
       setLoading(true);
 
-      toast.promise(new Promise((resolve) => setTimeout(() => resolve({}), 1000)), {
-         loading: 'Restoring file/s...',
-         success: () => {
-            setFiles((prevFiles) => {
-               if (selectedAllFiles) return [];
-
-               return prevFiles.filter((file) => {
-                  if (![...(selectedKeys.values() as any)].includes(file.id)) return file;
-               });
-            });
-
-            return 'Successfully restored file/s!';
-         },
-         error: () => {
-            return 'There was an error, please try again';
-         }
-      });
-
-      onClose();
+      trashMutation.mutate({ fileIds: selectedFiles, trashed: false });
    };
 
    return (
@@ -70,10 +71,7 @@ const RestoreButton: FunctionComponent<RestoreButtonProps> = ({ selectedKeys, se
                      <ModalBody className="py-5">
                         <p>
                            Are you sure you want to restore{' '}
-                           <span className="font-semibold text-primary">
-                              {selectedAllFiles ? 'all' : fileSize} file/s
-                           </span>
-                           ?
+                           <span className="font-semibold text-primary">{fileSize} file/s</span>?
                         </p>
                         <Button
                            type="submit"

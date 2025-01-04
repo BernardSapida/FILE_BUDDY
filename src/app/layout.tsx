@@ -20,7 +20,7 @@ export default function RootLayout({
 }>) {
    return (
       <html lang="en">
-         <body className="min-h-screen">
+         <body className="min-h-screen dark">
             <NextUIProvider>
                <ClerkProvider>
                   <TrpcProvider cookies={cookies().toString()}>

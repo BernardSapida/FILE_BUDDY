@@ -55,6 +55,7 @@ const FoldersTable: FunctionComponent<FoldersTableProps> = ({
    const pathname = usePathname();
    const archivePath = pathname === '/archives';
    const trashPath = pathname === '/trash';
+   const favoritePath = pathname === '/favorites';
    const [folders, setFolders] = useState<Folder[]>([]);
    const [filterValue, setFilterValue] = useState('');
    const [selectedKeys, setSelectedKeys] = useState(new Set([]));
@@ -97,6 +98,15 @@ const FoldersTable: FunctionComponent<FoldersTableProps> = ({
       });
    }, [sortDescriptor, items]);
 
+   const calculateFolderBytes = (files: File[]) => {
+      let accumulativeBytes = 0;
+
+      if (files.length === 0) return 0;
+
+      files.filter(({ bytes }) => (accumulativeBytes += bytes));
+      return accumulativeBytes;
+   };
+
    const renderCell = useCallback((folder: any, columnKey: any) => {
       const cellValue = folder[columnKey];
 
@@ -111,6 +121,8 @@ const FoldersTable: FunctionComponent<FoldersTableProps> = ({
                   setFolders={setFolders}
                />
             );
+         case 'bytes':
+            return calculateFolderBytes(folder.files);
          case 'folder_name':
             return (
                <div className="flex items-center gap-1">
@@ -199,7 +211,9 @@ const FoldersTable: FunctionComponent<FoldersTableProps> = ({
                />
                {showHeaderButtons && (
                   <div className="space-x-2">
-                     {!archivePath && !trashPath && <CreateFolderModal setFolders={setFolders} />}
+                     {!archivePath && !trashPath && !favoritePath && (
+                        <CreateFolderModal setFolders={setFolders} />
+                     )}
                      {trashPath ? (
                         <>
                            <RestoreButton
@@ -311,7 +325,7 @@ const FoldersTable: FunctionComponent<FoldersTableProps> = ({
             )}
          </TableHeader>
          <TableBody
-            emptyContent={'No results found'}
+            emptyContent={'No folders'}
             isLoading={isLoading}
             loadingContent={
                <Spinner
