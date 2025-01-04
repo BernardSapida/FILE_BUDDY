@@ -49,12 +49,15 @@
 
     TODO Page Folders
         Create folder
-        ! Rename folder
-        ! Favorite / Unfavorite
-        ! Trash / Restore (multiple)
+        Get folders
+        Rename folder
+        Favorite / Unfavorite
+        Trash / Restore (multiple)
 
     TODO FILE
-        ! Archive / Unarchive (multiple)
-        ! Trash / Restore (multiple)
-        ! Favorite / Unfavorite
+        Create file
+        Get files
+        Archive / Unarchive
+        Favorite / Unfavorite
+        Trash / Restore (multiple)
 */

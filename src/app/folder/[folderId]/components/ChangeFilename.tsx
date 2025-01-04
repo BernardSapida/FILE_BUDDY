@@ -37,7 +37,9 @@ const ChangeFilenameModal: FunctionComponent<ChangeFilenameModalProps> = ({
          success: () => {
             setFiles((prevFiles) =>
                prevFiles.map((file) =>
-                  file.id === fileId ? { ...file, filename: data.filename } : file
+                  file.id === fileId
+                     ? { ...file, filename: data.filename, updatedAt: new Date() }
+                     : file
                )
             );
             return `Successfully changed filename!`;
