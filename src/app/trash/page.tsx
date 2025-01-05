@@ -19,7 +19,12 @@ function Page() {
    } = trpc.file.getTrashedFiles.useQuery();
 
    useEffect(() => {
-      if (!fetchingFolders && folders) setFolders(foldersData as any);
+      if (!fetchingFolders && foldersData) {
+         foldersData.map((folder: any) => {
+            folder.bytes = folder.files.reduce((acc: number, file: File) => (acc += file.bytes), 0);
+         });
+         setFolders(foldersData as any);
+      }
    }, [foldersData, fetchingFolders]);
 
    useEffect(() => {

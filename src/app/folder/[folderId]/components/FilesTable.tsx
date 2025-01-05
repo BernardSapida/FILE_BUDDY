@@ -64,6 +64,7 @@ const FilesTable: FunctionComponent<FilesTableProps> = ({
    const archivePath = pathname === '/archives';
    const trashPath = pathname === '/trash';
    const favoritePath = pathname === '/favorites';
+   const filePath = pathname === '/files';
    const [filterValue, setFilterValue] = useState('');
    const [selectedKeys, setSelectedKeys] = useState(new Set([]));
    const [rowsPerPage, setRowsPerPage] = useState(5);
@@ -232,7 +233,7 @@ const FilesTable: FunctionComponent<FilesTableProps> = ({
                />
                {showHeaderButtons && (
                   <div className="flex gap-2">
-                     {!archivePath && !trashPath && !favoritePath && (
+                     {!archivePath && !trashPath && !favoritePath && !filePath && (
                         <CloudinaryUploadButton
                            folderId={folderId!}
                            setFiles={setFiles}

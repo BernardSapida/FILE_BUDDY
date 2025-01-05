@@ -26,7 +26,9 @@ export default function Menubar() {
    const { data: loggedUser, isLoading } = trpc.user.getLoggedUser.useQuery();
    const [isMenuOpen, setIsMenuOpen] = useState(false);
    let { user, isLoaded } = useUser();
-   let menu = getLinksForRole(user && !isLoading ? (loggedUser?.type as any) : 'guest');
+   let menu = getLinksForRole(
+      user && !isLoading ? ((loggedUser?.type as any) ?? 'guest') : 'guest'
+   );
 
    return (
       <Navbar
