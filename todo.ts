@@ -43,7 +43,7 @@
         Upload file
         Download File
         Delete file
-        ! Updated at (upon renaming)
+        Updated at (upon renaming)
 
     --------------------------------------------------------------
 
@@ -63,9 +63,8 @@
         Trash / Restore (multiple)
 
     TODO
-        ? Login
-        ? Landing
         ? Darkmode (Toggle)
-        ? Icons of FIleBuddy
-        ? Test different user/account
+
+    ! PENDING
+        ? Move to archive when (within 30days not being download)
 */

@@ -1,4 +1,4 @@
-type Role = 'user';
+type Role = 'guest' | 'user';
 type RouteAccessMap = { [path: string]: Role[] };
 
 interface User {
@@ -32,6 +32,8 @@ interface File {
    asset_id: string;
    bytes: number;
    type: Type;
+   tag: string;
+   tag_color: string;
    secure_url: string;
    favorited: boolean;
    archived: boolean;

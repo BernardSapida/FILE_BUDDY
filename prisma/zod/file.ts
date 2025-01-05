@@ -1,4 +1,5 @@
 import * as z from "zod"
+import { TagColor } from "@prisma/client"
 import { CompleteFolder, relatedFolderSchema } from "./index"
 
 export const fileSchema = z.object({
@@ -7,6 +8,8 @@ export const fileSchema = z.object({
   asset_id: z.string(),
   bytes: z.number().int(),
   type: z.string(),
+  tag: z.string(),
+  tag_color: z.nativeEnum(TagColor),
   secure_url: z.string(),
   favorited: z.boolean(),
   archived: z.boolean(),

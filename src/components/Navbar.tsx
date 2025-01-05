@@ -1,6 +1,7 @@
 'use client';
 
 import { getLinksForRole } from '@/config/nav';
+import { trpc } from '@/lib/trpc/client';
 import { UserButton, useUser } from '@clerk/nextjs';
 import {
    Avatar,
@@ -15,22 +16,17 @@ import {
    NavbarMenuToggle,
    Skeleton
 } from '@nextui-org/react';
-import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useContext, useState } from 'react';
+import { useState } from 'react';
 import { RxCross2, RxHamburgerMenu } from 'react-icons/rx';
-import { UserContext } from './UserContextWrapper';
 
 export default function Menubar() {
    const pathname = usePathname();
-   const { user: loggedUser } = useContext(UserContext);
+   const { data: loggedUser, isLoading } = trpc.user.getLoggedUser.useQuery();
    const [isMenuOpen, setIsMenuOpen] = useState(false);
-   let { isSignedIn, user, isLoaded } = useUser();
-   let menu = getLinksForRole(
-      // loggedUser?.type as Role
-      'user'
-   );
+   let { user, isLoaded } = useUser();
+   let menu = getLinksForRole(user && !isLoading ? (loggedUser?.type as any) : 'guest');
 
    return (
       <Navbar
@@ -43,9 +39,9 @@ export default function Menubar() {
             <NavbarBrand>
                <Link
                   className="flex items-center gap-3"
-                  href="/#landing"
+                  href="/"
                >
-                  <p className="hidden font-bold lg:block">FILE BUDDY</p>
+                  <p className="font-bold">FILE BUDDY</p>
                </Link>
             </NavbarBrand>
          </NavbarContent>
@@ -77,7 +73,7 @@ export default function Menubar() {
                   <Button
                      as={Link}
                      href="sign-in"
-                     className={`rounded-lg font-normal text-white ${isSignedIn && 'hidden'}`}
+                     className={`rounded-lg font-normal text-white ${user && 'hidden'}`}
                      size="sm"
                      data-cy="signin-button"
                      color="primary"
@@ -87,7 +83,7 @@ export default function Menubar() {
                ) : (
                   <Skeleton className="h-8 w-8 rounded-full" />
                )}
-               <div className={isSignedIn ? 'block' : 'hidden'}>
+               <div className={user ? 'block' : 'hidden'}>
                   <Skeleton
                      className="h-max w-max rounded-full"
                      isLoaded={isLoaded}
@@ -127,7 +123,7 @@ export default function Menubar() {
                }
             />
          </NavbarContent>
-         <NavbarMenu className="bg-white">
+         <NavbarMenu>
             {menu.map((item, index) => (
                <Skeleton
                   key={`${item.label}-${index}`}
@@ -148,13 +144,13 @@ export default function Menubar() {
                as={Link}
                href="sign-in"
                color="primary"
-               className={`rounded-lg font-normal text-white ${isSignedIn && 'hidden'}`}
+               className={`rounded-lg font-normal text-white ${user && 'hidden'}`}
                size="sm"
                data-cy="signin-button"
             >
                Sign In
             </Button>
-            <div className={`mt-3 gap-3 ${isSignedIn ? 'flex' : 'hidden'}`}>
+            <div className={`mt-3 gap-3 ${user ? 'flex' : 'hidden'}`}>
                <div className="relative h-8 w-8 rounded-full bg-transparent">
                   <div className="absolute left-0 top-0 z-10 h-full w-full opacity-0">
                      <UserButton />

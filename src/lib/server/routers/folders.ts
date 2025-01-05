@@ -6,11 +6,11 @@ export const foldersRouter = router({
    createFolder: publicProcedure
       .input(
          z.object({
-            clerkUserId: z.string().min(1, { message: 'Clerk uuid is required' }),
             folder_name: z.string().min(1, { message: 'Folder name is required' })
          })
       )
-      .mutation(async ({ input: { clerkUserId, folder_name } }) => {
+      .mutation(async ({ input: { folder_name }, ctx }) => {
+         const clerkUserId = ctx.session?.user.id;
          const res = await db.folder.create({
             data: {
                folder_name,

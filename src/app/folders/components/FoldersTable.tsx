@@ -15,20 +15,21 @@ import {
    Tooltip
 } from '@nextui-org/react';
 import Link from 'next/link';
-import { FunctionComponent, useCallback, useEffect, useMemo, useState } from 'react';
+import { usePathname } from 'next/navigation';
+import { Dispatch, FunctionComponent, SetStateAction, useCallback, useMemo, useState } from 'react';
 import { FaFolder } from 'react-icons/fa6';
 import { IoIosArrowForward } from 'react-icons/io';
 import { MdSearch } from 'react-icons/md';
 import ChangeFoldername from './ChangeFoldername';
 import CreateFolderModal from './CreateFolderModal';
-import FavoriteToggle from './FavoriteToggle';
-import { usePathname } from 'next/navigation';
 import DeleteButton from './DeleteButton';
-import TrashButton from './TrashButton';
+import FavoriteToggle from './FavoriteToggle';
 import RestoreButton from './RestoreButton';
+import TrashButton from './TrashButton';
 
 interface FoldersTableProps {
    folders: Folder[];
+   setFolders: Dispatch<SetStateAction<Folder[]>>;
    showHeaderButtons?: boolean;
    isLoading: boolean;
 }
@@ -48,7 +49,8 @@ export const statusOptions = [
 ];
 
 const FoldersTable: FunctionComponent<FoldersTableProps> = ({
-   folders: userFolders,
+   folders,
+   setFolders,
    showHeaderButtons = true,
    isLoading
 }) => {
@@ -56,7 +58,6 @@ const FoldersTable: FunctionComponent<FoldersTableProps> = ({
    const archivePath = pathname === '/archives';
    const trashPath = pathname === '/trash';
    const favoritePath = pathname === '/favorites';
-   const [folders, setFolders] = useState<Folder[]>([]);
    const [filterValue, setFilterValue] = useState('');
    const [selectedKeys, setSelectedKeys] = useState(new Set([]));
    const [rowsPerPage, setRowsPerPage] = useState(5);
@@ -98,15 +99,6 @@ const FoldersTable: FunctionComponent<FoldersTableProps> = ({
       });
    }, [sortDescriptor, items]);
 
-   const calculateFolderBytes = (files: File[]) => {
-      let accumulativeBytes = 0;
-
-      if (files.length === 0) return 0;
-
-      files.filter(({ bytes }) => (accumulativeBytes += bytes));
-      return accumulativeBytes;
-   };
-
    const renderCell = useCallback((folder: any, columnKey: any) => {
       const cellValue = folder[columnKey];
 
@@ -122,7 +114,7 @@ const FoldersTable: FunctionComponent<FoldersTableProps> = ({
                />
             );
          case 'bytes':
-            return calculateFolderBytes(folder.files);
+            return cellValue;
          case 'folder_name':
             return (
                <div className="flex items-center gap-1">
@@ -202,7 +194,7 @@ const FoldersTable: FunctionComponent<FoldersTableProps> = ({
             <div className="flex items-end justify-between gap-3">
                <Input
                   isClearable
-                  className="w-full sm:max-w-[44%]"
+                  className="w-full max-w-64"
                   placeholder="Search by folder name"
                   startContent={<MdSearch />}
                   value={filterValue}
@@ -210,7 +202,7 @@ const FoldersTable: FunctionComponent<FoldersTableProps> = ({
                   onValueChange={onSearchChange}
                />
                {showHeaderButtons && (
-                  <div className="space-x-2">
+                  <div className="flex gap-2">
                      {!archivePath && !trashPath && !favoritePath && (
                         <CreateFolderModal setFolders={setFolders} />
                      )}
@@ -293,10 +285,6 @@ const FoldersTable: FunctionComponent<FoldersTableProps> = ({
          </div>
       );
    }, [selectedKeys, items.length, page, pages, hasSearchFilter]);
-
-   useEffect(() => {
-      if (!isLoading) setFolders(userFolders);
-   }, [isLoading]);
 
    return (
       <Table

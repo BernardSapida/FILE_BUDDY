@@ -8,7 +8,6 @@ async function main() {
    //    lastname: 'Sapida',
    //    email: 'bernardsapida1706@gmail.com'
    // });
-
    // await setFolderTrash(['6778097c4b3dcb722dd799fc', '6778a8ba96e3d0fc3a1e4abe'], true);
    // createFile('6778097c4b3dcb722dd799fc', {
    //    filename: 'Hello',
@@ -18,13 +17,20 @@ async function main() {
    //    secure_url: 'http://localhost:3000'
    // });
    // getFiles('6778097c4b3dcb722dd799fc');
-   createFile('6778a8ba96e3d0fc3a1e4abe', {
-      filename: 'File 1',
-      asset_id: '123',
-      bytes: 1000,
-      type: 'jpg',
-      secure_url: 'http://localhost:3000'
+   // createFile('6778a8ba96e3d0fc3a1e4abe', {
+   //    filename: 'File 1',
+   //    asset_id: '123',
+   //    bytes: 1000,
+   //    type: 'jpg',
+   //    secure_url: 'http://localhost:3000'
+   // });
+   const res = await prisma.file.updateMany({
+      data: {
+         tag: 'none',
+         tag_color: 'default'
+      }
    });
+   console.log(res);
 }
 
 const createUser = async ({

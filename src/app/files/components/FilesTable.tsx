@@ -34,6 +34,7 @@ import DownloadFile from './DownloadFile';
 import FavoriteToggle from './FavoriteToggle';
 import RestoreButton from './RestoreButton';
 import TrashButton from './TrashButton';
+import FileTag from './FileTag';
 
 interface FilesTableProps {
    files: File[];
@@ -46,8 +47,10 @@ interface FilesTableProps {
 export const columns = [
    { name: 'FAVORITE', uid: 'favorited', sortable: true },
    { name: 'FILENAME', uid: 'filename', sortable: true },
+   { name: 'FOLDER', uid: 'folder', sortable: true },
    { name: 'BYTES', uid: 'bytes', sortable: true },
    { name: 'TYPE', uid: 'type', sortable: true },
+   { name: 'TAG', uid: 'tag', sortable: true },
    { name: 'CREATED AT', uid: 'createdAt', sortable: true },
    { name: 'UPDATED AT', uid: 'updatedAt', sortable: true },
    { name: 'ACTIONS', uid: 'actions' }
@@ -69,6 +72,7 @@ const FilesTable: FunctionComponent<FilesTableProps> = ({
    const archivePath = pathname === '/archives';
    const trashPath = pathname === '/trash';
    const favoritePath = pathname === '/favorites';
+   const filePath = pathname === '/files';
    const [filterValue, setFilterValue] = useState('');
    const [selectedKeys, setSelectedKeys] = useState(new Set([]));
    const [rowsPerPage, setRowsPerPage] = useState(5);
@@ -83,8 +87,12 @@ const FilesTable: FunctionComponent<FilesTableProps> = ({
       let filteredFiles = [...files];
 
       if (hasSearchFilter) {
-         filteredFiles = filteredFiles.filter((file) =>
-            file.filename.toLowerCase().includes(filterValue.toLowerCase())
+         filteredFiles = filteredFiles.filter(
+            (file) =>
+               file.filename.toLowerCase().includes(filterValue.toLowerCase()) ||
+               file.folder.folder_name.toLowerCase().includes(filterValue.toLowerCase()) ||
+               file.type.toLowerCase().includes(filterValue.toLowerCase()) ||
+               file.tag.toLowerCase().includes(filterValue.toLowerCase())
          );
       }
 
@@ -135,6 +143,8 @@ const FilesTable: FunctionComponent<FilesTableProps> = ({
                   />
                </div>
             );
+         case 'folder':
+            return file.folder.folder_name;
          case 'type':
             return (
                <Chip
@@ -144,6 +154,24 @@ const FilesTable: FunctionComponent<FilesTableProps> = ({
                >
                   {cellValue}
                </Chip>
+            );
+         case 'tag':
+            return (
+               <div className="flex items-center gap-1">
+                  <Chip
+                     size="sm"
+                     variant="shadow"
+                     color={file.tag_color}
+                  >
+                     {cellValue}
+                  </Chip>
+                  <FileTag
+                     fileId={file.id}
+                     tag={cellValue}
+                     tagColor={file.tag_color}
+                     setFiles={setFiles}
+                  />
+               </div>
             );
          case 'createdAt':
          case 'updatedAt':
@@ -213,7 +241,7 @@ const FilesTable: FunctionComponent<FilesTableProps> = ({
                />
                {showHeaderButtons && (
                   <div className="flex gap-2">
-                     {!archivePath && !trashPath && !favoritePath && (
+                     {!archivePath && !trashPath && !favoritePath && !filePath && (
                         <CloudinaryUploadButton
                            folderId={folderId!}
                            setFiles={setFiles}

@@ -40,6 +40,7 @@ const FavoriteToggle: FunctionComponent<FavoriteToggleProps> = ({
          isIconOnly
          variant="light"
          onPress={handleFavoriteChange}
+         isLoading={favoriteMutation.isLoading}
       >
          {favorite ? (
             <FaHeart className="text-xl text-red-500" />

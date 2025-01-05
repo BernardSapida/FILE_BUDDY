@@ -1,27 +1,46 @@
+import { currentUser } from '@clerk/nextjs/server';
 import { db } from '@/lib/db/index';
 import { publicProcedure, router } from '@/lib/server/trpc';
-import { z } from 'zod';
 
 export const usersRouter = router({
-   createUser: publicProcedure
-      .input(
-         z.object({
-            clerkUserId: z.string().min(1, { message: 'Clerk uuid is required' }),
-            firstname: z.string().min(1, { message: 'Firstname is required' }),
-            lastname: z.string().min(1, { message: 'Lastname is required' }),
-            email: z.string().min(1, { message: 'Email is required' })
-         })
-      )
-      .mutation(async ({ input: { clerkUserId, firstname, lastname, email } }) => {
-         const res = await db.user.create({
-            data: {
-               clerkUserId,
-               firstname,
-               lastname,
-               email
-            }
-         });
+   handleAuth: publicProcedure.mutation(async ({ ctx }) => {
+      const clerkUserId = ctx.session?.user.id;
 
-         console.log(res);
-      })
+      if (!clerkUserId) {
+         throw new Error('User session not found!');
+      }
+
+      // Fetch user by clerkId
+      const user = await db.user.findFirst({
+         where: { clerkUserId }
+      });
+
+      if (user) return user;
+
+      const loggedUser = await currentUser();
+      const firstname = loggedUser?.firstName ?? '';
+      const lastname = loggedUser?.lastName ?? '';
+      const email = loggedUser?.emailAddresses[0].emailAddress!;
+
+      // Create user if first time
+      const newUser = await db.user.create({
+         data: {
+            clerkUserId,
+            firstname,
+            lastname,
+            email
+         }
+      });
+
+      console.log(newUser);
+      return newUser;
+   }),
+   getLoggedUser: publicProcedure.query(async ({ ctx }) => {
+      const clerkUserId = ctx.session?.user.id;
+      const res = await db.user.findFirst({
+         where: { clerkUserId }
+      });
+
+      return res;
+   })
 });

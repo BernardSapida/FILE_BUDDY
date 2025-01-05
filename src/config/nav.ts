@@ -9,8 +9,10 @@ type UserNavConfig = {
 };
 
 const navConfig: UserNavConfig = {
+   guest: [],
    user: [
       { label: 'Folders', href: '/folders' },
+      { label: 'Files', href: '/files' },
       { label: 'Favorites', href: '/favorites' },
       { label: 'Archives', href: '/archives' },
       { label: 'Trash', href: '/trash' }

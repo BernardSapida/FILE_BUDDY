@@ -1,9 +1,9 @@
-import { SignUp } from "@clerk/nextjs";
+import { SignUp } from '@clerk/nextjs';
 
 export default function Page() {
-  return (
-    <main className="grid place-items-center pt-4">
-      <SignUp />
-    </main>
-  );
+   return (
+      <main className="grid place-items-center pt-4">
+         <SignUp fallbackRedirectUrl={'/auth-callback'} />
+      </main>
+   );
 }

@@ -5,10 +5,22 @@ import BaseContainer from '@/components/BaseContainer';
 import { Tab, Tabs } from '@nextui-org/react';
 import FilesTable from '../folder/[folderId]/components/FilesTable';
 import { trpc } from '@/lib/trpc/client';
+import { useEffect, useState } from 'react';
 
 function Page() {
-   const { data: folders, isLoading: fetchingFolders } = trpc.folder.getFavoritedFolders.useQuery();
-   const { data: files, isLoading: fetchingFiles } = trpc.file.getFavoritedFiles.useQuery();
+   const [folders, setFolders] = useState<Folder[]>([]);
+   const [files, setFiles] = useState<File[]>([]);
+   const { data: foldersData, isLoading: fetchingFolders } =
+      trpc.folder.getFavoritedFolders.useQuery();
+   const { data: filesData, isLoading: fetchingFiles } = trpc.file.getFavoritedFiles.useQuery();
+
+   useEffect(() => {
+      if (!fetchingFolders && foldersData) setFolders(foldersData as any);
+   }, [foldersData, fetchingFolders]);
+
+   useEffect(() => {
+      if (!fetchingFiles && filesData) setFiles(filesData as any);
+   }, [filesData, fetchingFiles]);
 
    return (
       <BaseContainer>
@@ -20,6 +32,7 @@ function Page() {
             >
                <FoldersTable
                   folders={folders as any}
+                  setFolders={setFolders}
                   isLoading={fetchingFolders}
                />
             </Tab>
@@ -29,6 +42,7 @@ function Page() {
             >
                <FilesTable
                   files={files as any}
+                  setFiles={setFiles}
                   isLoading={fetchingFiles}
                />
             </Tab>

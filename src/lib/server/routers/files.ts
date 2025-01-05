@@ -56,6 +56,52 @@ export const filesRouter = router({
 
          return res;
       }),
+   renameTag: publicProcedure
+      .input(
+         z.object({
+            fileId: z.string().min(1, { message: 'File id is required' }),
+            tag: z.string().min(1, { message: 'Tag is required' }),
+            tagColor: z.string().min(1, { message: 'Tag color is required' })
+         })
+      )
+      .mutation(async ({ input: { fileId, tag, tagColor } }) => {
+         const res = await db.file.update({
+            where: { id: fileId },
+            data: { tag, tag_color: tagColor as any }
+         });
+
+         return res;
+      }),
+   getAllFiles: publicProcedure
+      .input(
+         z.object({
+            startDate: z.date({ message: 'Start date is required' }).optional(),
+            endDate: z.date({ message: 'End date is required' }).optional()
+         })
+      )
+      .query(async ({ input: { startDate, endDate }, ctx }) => {
+         const clerkUserId = ctx.session?.user.id;
+         const dateFilter =
+            startDate && endDate
+               ? { createdAt: { gte: startDate, lte: endDate } }
+               : startDate
+                 ? { createdAt: { gte: startDate } }
+                 : endDate
+                   ? { createdAt: { lte: endDate } }
+                   : {};
+         const filter = {
+            folder: { user: { clerkUserId } },
+            AND: { archived: false, trashed: false },
+            ...dateFilter
+         };
+
+         const res = await db.file.findMany({
+            where: filter,
+            include: { folder: { select: { folder_name: true } } }
+         });
+
+         return res;
+      }),
    getFiles: publicProcedure
       .input(
          z.object({

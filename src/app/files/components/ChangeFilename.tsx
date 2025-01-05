@@ -11,34 +11,32 @@ import {
    useDisclosure
 } from '@nextui-org/react';
 import { Dispatch, FunctionComponent, SetStateAction, useState } from 'react';
-import { FaPlus } from 'react-icons/fa';
-import { MdCreate } from 'react-icons/md';
+import { CiEdit } from 'react-icons/ci';
+import { IoCheckmark } from 'react-icons/io5';
 import { toast } from 'sonner';
 
-interface CreateFolderModalProps {
-   setFolders: Dispatch<SetStateAction<Folder[]>>;
+interface ChangeFilenameProps {
+   fileId: string;
+   filename: string;
+   setFiles: Dispatch<SetStateAction<File[]>>;
 }
 
-const CreateFolderModal: FunctionComponent<CreateFolderModalProps> = ({ setFolders }) => {
+const ChangeFilename: FunctionComponent<ChangeFilenameProps> = ({ fileId, filename, setFiles }) => {
    const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure();
    const [loading, setLoading] = useState<boolean>(false);
-   const createMutation = trpc.folder.createFolder.useMutation({
-      onSuccess: (folder) => {
-         setFolders((prevFolders) => [
-            {
-               id: folder.id,
-               folder_name: folder.folder_name,
-               files: [],
-               favorited: false,
-               trashed: false,
-               createdAt: new Date(),
-               updatedAt: new Date()
-            } as any,
-            ...prevFolders
-         ]);
-         setLoading(false);
-         toast.success('Successfully created folder');
+
+   const changeMutation = trpc.file.renameFile.useMutation({
+      onSuccess: (data) => {
+         setFiles((prevFiles) =>
+            prevFiles.map((file) =>
+               file.id === fileId
+                  ? { ...file, filename: data.filename, updatedAt: new Date() }
+                  : file
+            )
+         );
+         toast.success('Successfully changed filename');
          onClose();
+         setLoading(false);
       },
       onError: () => {
          toast.error('There was an error, please try again');
@@ -48,23 +46,22 @@ const CreateFolderModal: FunctionComponent<CreateFolderModalProps> = ({ setFolde
 
    const onSubmit = (e: any) => {
       e.preventDefault();
-
       setLoading(true);
 
-      const data = Object.fromEntries(new FormData(e.currentTarget)) as { folderName: string };
-      createMutation.mutate({ folder_name: data.folderName });
+      const data = Object.fromEntries(new FormData(e.currentTarget)) as { filename: string };
+      changeMutation.mutate({ fileId, filename: data.filename });
    };
 
    return (
       <>
          <Button
-            color="primary"
-            startContent={<FaPlus />}
-            variant="solid"
+            isIconOnly
+            size="sm"
+            variant="light"
+            className="text-base text-default-400"
             onPress={onOpen}
-         >
-            Create folder
-         </Button>
+            startContent={<CiEdit className="text-xl" />}
+         />
          <Modal
             isOpen={isOpen}
             onOpenChange={onOpenChange}
@@ -72,7 +69,7 @@ const CreateFolderModal: FunctionComponent<CreateFolderModalProps> = ({ setFolde
             <ModalContent>
                {() => (
                   <>
-                     <ModalHeader className="flex flex-col gap-1">Create Folder</ModalHeader>
+                     <ModalHeader className="flex flex-col gap-1">Rename File</ModalHeader>
                      <Divider />
                      <ModalBody className="py-5">
                         <Form
@@ -82,24 +79,25 @@ const CreateFolderModal: FunctionComponent<CreateFolderModalProps> = ({ setFolde
                         >
                            <Input
                               type="text"
-                              name="folderName"
-                              placeholder="Folder name"
-                              aria-label="Foldername input"
+                              name="filename"
+                              defaultValue={filename}
+                              placeholder="Filename"
+                              aria-label="Filename input"
                               validate={(value) => {
-                                 if (!value) return 'Folder name is required';
+                                 if (!value) return 'Filename is required';
                               }}
                               isRequired
                            />
                            <Button
                               type="submit"
                               size="sm"
-                              startContent={!loading && <MdCreate />}
+                              startContent={!loading && <IoCheckmark className="text-xl" />}
                               color="primary"
                               className="ml-auto"
                               isLoading={loading}
                               isDisabled={loading}
                            >
-                              {loading ? 'Creating folder...' : 'Create'}
+                              {loading ? 'Renaming...' : 'Rename'}
                            </Button>
                         </Form>
                      </ModalBody>
@@ -111,4 +109,4 @@ const CreateFolderModal: FunctionComponent<CreateFolderModalProps> = ({ setFolde
    );
 };
 
-export default CreateFolderModal;
+export default ChangeFilename;

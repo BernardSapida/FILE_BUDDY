@@ -46,12 +46,22 @@ model Folder {
   user   User   @relation(fields: [userId], references: [id])
 }
 
+enum TagColor {
+  default
+  primary
+  success
+  secondary
+  danger
+}
+
 model File {
   id         String   @id @default(auto()) @map("_id") @db.ObjectId
   filename   String
   asset_id   String   @unique
   bytes      Int
   type       String
+  tag        String   @default("none")
+  tag_color  TagColor @default(default)
   secure_url String
   favorited  Boolean  @default(false)
   archived   Boolean  @default(false)
