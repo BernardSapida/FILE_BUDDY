@@ -29,6 +29,7 @@ const CreateFolderModal: FunctionComponent<CreateFolderModalProps> = ({ setFolde
                id: folder.id,
                folder_name: folder.folder_name,
                files: [],
+               bytes: 0,
                favorited: false,
                trashed: false,
                createdAt: new Date(),

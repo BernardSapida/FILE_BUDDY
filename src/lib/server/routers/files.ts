@@ -23,7 +23,7 @@ export const filesRouter = router({
                file: { filename, asset_id, bytes, type, secure_url }
             }
          }) => {
-            const res = await db.file.create({
+            const res: any = await db.file.create({
                data: {
                   filename,
                   asset_id,
@@ -37,6 +37,13 @@ export const filesRouter = router({
                   }
                }
             });
+            const folder = await db.folder.findFirst({
+               where: { id: folderId }
+            });
+
+            res.folder = { folder_name: folder?.folder_name };
+
+            console.log(res);
 
             return res;
          }
@@ -128,7 +135,8 @@ export const filesRouter = router({
             folder: { user: { clerkUserId } },
             favorited: true,
             AND: { archived: false, trashed: false }
-         }
+         },
+         include: { folder: { select: { folder_name: true } } }
       });
 
       return res;
@@ -136,7 +144,8 @@ export const filesRouter = router({
    getTrashedFiles: publicProcedure.query(async ({ ctx }) => {
       const clerkUserId = ctx.session?.user.id;
       const res = await db.file.findMany({
-         where: { folder: { user: { clerkUserId } }, trashed: true }
+         where: { folder: { user: { clerkUserId } }, trashed: true },
+         include: { folder: { select: { folder_name: true } } }
       });
 
       return res;
@@ -144,7 +153,11 @@ export const filesRouter = router({
    getArchivedFiles: publicProcedure.query(async ({ ctx }) => {
       const clerkUserId = ctx.session?.user.id;
       const res = await db.file.findMany({
-         where: { folder: { user: { clerkUserId } }, archived: true }
+         where: {
+            folder: { user: { clerkUserId } },
+            AND: { archived: true, trashed: false }
+         },
+         include: { folder: { select: { folder_name: true } } }
       });
 
       return res;

@@ -12,7 +12,11 @@ function Page() {
    const [files, setFiles] = useState<File[]>([]);
    const { data: foldersData, isLoading: fetchingFolders } =
       trpc.folder.getTrashedFolders.useQuery();
-   const { data: filesData, isLoading: fetchingFiles } = trpc.file.getTrashedFiles.useQuery();
+   const {
+      data: filesData,
+      isLoading: fetchingFiles,
+      refetch: refetchFiles
+   } = trpc.file.getTrashedFiles.useQuery();
 
    useEffect(() => {
       if (!fetchingFolders && folders) setFolders(foldersData as any);
@@ -21,6 +25,10 @@ function Page() {
    useEffect(() => {
       if (!fetchingFiles && files) setFiles(filesData as any);
    }, [filesData, fetchingFiles]);
+
+   useEffect(() => {
+      refetchFiles();
+   }, [folders]);
 
    return (
       <BaseContainer>

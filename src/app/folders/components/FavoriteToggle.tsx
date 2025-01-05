@@ -24,7 +24,7 @@ const FavoriteToggle: FunctionComponent<FavoriteToggleProps> = ({
             )
          );
          setFavorite((prevFavorite) => !prevFavorite);
-         toast.success(`Successfully ${favorite ? 'removed' : 'added'} to favorite folders!`);
+         toast.success(`Successfully ${favorite ? 'removed' : 'added'} to favorite folders`);
       },
       onError: () => {
          toast.error('There was an error, please try again');

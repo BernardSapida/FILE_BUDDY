@@ -95,7 +95,7 @@ export const foldersRouter = router({
    getFavoritedFolders: publicProcedure.query(async ({ ctx }) => {
       const clerkUserId = ctx.session?.user.id;
       const res = await db.folder.findMany({
-         where: { user: { clerkUserId }, favorited: true },
+         where: { user: { clerkUserId }, AND: { favorited: true, trashed: false } },
          include: { files: { select: { bytes: true } } }
       });
 

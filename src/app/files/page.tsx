@@ -4,7 +4,7 @@ import BaseContainer from '@/components/BaseContainer';
 import { trpc } from '@/lib/trpc/client';
 import { FunctionComponent, useEffect, useState } from 'react';
 import DateRange from './components/DateRange';
-import FilesTable from './components/FilesTable';
+import FilesTable from '../folder/[folderId]/components/FilesTable';
 
 interface PageProps {
    params: { folderId: string };

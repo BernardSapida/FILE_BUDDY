@@ -14,7 +14,14 @@ const Page: FunctionComponent<PageProps> = ({ params: { folderId } }) => {
    const { data: fileData, isLoading: fetchingFiles } = trpc.file.getFiles.useQuery({ folderId });
 
    useEffect(() => {
-      if (!fetchingFiles && fileData?.files) setFiles(fileData?.files as any);
+      if (!fetchingFiles && fileData?.files) {
+         fileData.files = fileData?.files.map((file) => ({
+            ...file,
+            folder: { folder_name: fileData?.folder_name }
+         }));
+
+         setFiles(fileData?.files as any);
+      }
    }, [fileData, fetchingFiles]);
 
    return (
@@ -22,14 +29,12 @@ const Page: FunctionComponent<PageProps> = ({ params: { folderId } }) => {
          <h1 className="mb-5 text-2xl font-semibold text-primary">
             {fileData?.folder_name}&apos;s Files
          </h1>
-         {files && (
-            <FilesTable
-               files={files}
-               setFiles={setFiles}
-               folderId={folderId}
-               isLoading={fetchingFiles}
-            />
-         )}
+         <FilesTable
+            files={files}
+            setFiles={setFiles}
+            folderId={folderId}
+            isLoading={fetchingFiles}
+         />
       </BaseContainer>
    );
 };

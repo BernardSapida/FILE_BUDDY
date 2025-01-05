@@ -1,5 +1,6 @@
 'use client';
 
+import FileTag from '@/app/files/components/FileTag';
 import { getFormattedDateTime } from '@/lib/utils';
 import {
    Button,
@@ -15,15 +16,7 @@ import {
    TableRow
 } from '@nextui-org/react';
 import { usePathname } from 'next/navigation';
-import {
-   Dispatch,
-   FunctionComponent,
-   SetStateAction,
-   useCallback,
-   useEffect,
-   useMemo,
-   useState
-} from 'react';
+import { Dispatch, FunctionComponent, SetStateAction, useCallback, useMemo, useState } from 'react';
 import { FaFolder } from 'react-icons/fa6';
 import { MdSearch } from 'react-icons/md';
 import ArchiveFile from './ArchiveFile';
@@ -46,8 +39,10 @@ interface FilesTableProps {
 export const columns = [
    { name: 'FAVORITE', uid: 'favorited', sortable: true },
    { name: 'FILENAME', uid: 'filename', sortable: true },
+   { name: 'FOLDER', uid: 'folder', sortable: true },
    { name: 'BYTES', uid: 'bytes', sortable: true },
    { name: 'TYPE', uid: 'type', sortable: true },
+   { name: 'TAG', uid: 'tag', sortable: true },
    { name: 'CREATED AT', uid: 'createdAt', sortable: true },
    { name: 'UPDATED AT', uid: 'updatedAt', sortable: true },
    { name: 'ACTIONS', uid: 'actions' }
@@ -83,8 +78,12 @@ const FilesTable: FunctionComponent<FilesTableProps> = ({
       let filteredFiles = [...files];
 
       if (hasSearchFilter) {
-         filteredFiles = filteredFiles.filter((file) =>
-            file.filename.toLowerCase().includes(filterValue.toLowerCase())
+         filteredFiles = filteredFiles.filter(
+            (file) =>
+               file.filename.toLowerCase().includes(filterValue.toLowerCase()) ||
+               file.folder.folder_name.toLowerCase().includes(filterValue.toLowerCase()) ||
+               file.type.toLowerCase().includes(filterValue.toLowerCase()) ||
+               file.tag.toLowerCase().includes(filterValue.toLowerCase())
          );
       }
 
@@ -135,6 +134,8 @@ const FilesTable: FunctionComponent<FilesTableProps> = ({
                   />
                </div>
             );
+         case 'folder':
+            return file.folder.folder_name;
          case 'type':
             return (
                <Chip
@@ -144,6 +145,24 @@ const FilesTable: FunctionComponent<FilesTableProps> = ({
                >
                   {cellValue}
                </Chip>
+            );
+         case 'tag':
+            return (
+               <div className="flex items-center gap-1">
+                  <Chip
+                     size="sm"
+                     variant="shadow"
+                     color={file.tag_color}
+                  >
+                     {cellValue}
+                  </Chip>
+                  <FileTag
+                     fileId={file.id}
+                     tag={cellValue}
+                     tagColor={file.tag_color}
+                     setFiles={setFiles}
+                  />
+               </div>
             );
          case 'createdAt':
          case 'updatedAt':

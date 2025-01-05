@@ -14,7 +14,7 @@ const CloudinaryUploadButton: FunctionComponent<CloudinaryUploadButtonProps> = (
    setFiles
 }) => {
    const createMutation = trpc.file.createFile.useMutation({
-      onSuccess: (file) => {
+      onSuccess: (file: any) => {
          setFiles((prevFiles) => [file as File, ...prevFiles]);
          toast.success('Successfully uploaded file');
       },
