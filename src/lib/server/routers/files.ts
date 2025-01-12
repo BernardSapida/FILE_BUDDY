@@ -10,6 +10,7 @@ export const filesRouter = router({
             file: z.object({
                filename: z.string().min(1, { message: 'Filename is required' }),
                asset_id: z.string().min(1, { message: 'Assest ID is required' }),
+               public_id: z.string().min(1, { message: 'Public ID is required' }),
                bytes: z.number(),
                type: z.string().min(1, { message: 'Type is required' }),
                secure_url: z.string().min(1, { message: 'Secure URL is required' })
@@ -20,13 +21,14 @@ export const filesRouter = router({
          async ({
             input: {
                folderId,
-               file: { filename, asset_id, bytes, type, secure_url }
+               file: { filename, asset_id, public_id, bytes, type, secure_url }
             }
          }) => {
             const res: any = await db.file.create({
                data: {
                   filename,
                   asset_id,
+                  public_id,
                   bytes,
                   type,
                   secure_url,
@@ -109,6 +111,15 @@ export const filesRouter = router({
 
          return res;
       }),
+   getFolderFileTypes: publicProcedure.query(async ({ ctx }) => {
+      const clerkUserId = ctx.session?.user.id;
+      const res = await db.file.findMany({
+         where: { folder: { user: { clerkUserId } } },
+         distinct: 'type'
+      });
+
+      return res.map((file) => ({ name: file.type, uid: file.type }));
+   }),
    getFiles: publicProcedure
       .input(
          z.object({
@@ -125,8 +136,28 @@ export const filesRouter = router({
                }
             }
          });
+         const types = await db.file.findMany({
+            where: { folderId },
+            distinct: 'type'
+         });
 
          return res;
+      }),
+   getFilesPublicId: publicProcedure
+      .input(
+         z.object({
+            assetIds: z.array(z.string()).min(1, { message: 'At least one folder ID is required' })
+         })
+      )
+      .query(async ({ input: { assetIds } }) => {
+         const res = await db.file.findMany({
+            where: {
+               asset_id: { in: assetIds }
+            },
+            select: { public_id: true }
+         });
+
+         return res?.map((file) => file.public_id);
       }),
    getFavoritedFiles: publicProcedure.query(async ({ ctx }) => {
       const clerkUserId = ctx.session?.user.id;

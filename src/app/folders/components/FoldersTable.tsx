@@ -26,6 +26,7 @@ import DeleteButton from './DeleteButton';
 import FavoriteToggle from './FavoriteToggle';
 import RestoreButton from './RestoreButton';
 import TrashButton from './TrashButton';
+import DownloadZipButton from './DownloadZipButton';
 
 interface FoldersTableProps {
    folders: Folder[];
@@ -67,6 +68,7 @@ const FoldersTable: FunctionComponent<FoldersTableProps> = ({
    });
    const [page, setPage] = useState(1);
    const hasSearchFilter = Boolean(filterValue);
+   const selectedFiles = [...(selectedKeys.values() as any)];
 
    const filteredItems = useMemo(() => {
       let filteredFolders = [...folders];
@@ -206,6 +208,7 @@ const FoldersTable: FunctionComponent<FoldersTableProps> = ({
                      {!archivePath && !trashPath && !favoritePath && (
                         <CreateFolderModal setFolders={setFolders} />
                      )}
+                     {selectedFiles.length != 0 && <DownloadZipButton folderIds={selectedFiles} />}
                      {trashPath ? (
                         <>
                            <RestoreButton

@@ -3,6 +3,23 @@ import { publicProcedure, router } from '@/lib/server/trpc';
 import { z } from 'zod';
 
 export const foldersRouter = router({
+   getFilesPublicId: publicProcedure
+      .input(
+         z.object({
+            folderIds: z.array(z.string()).min(1, { message: 'At least one folder ID is required' })
+         })
+      )
+      .query(async ({ input: { folderIds } }) => {
+         const res = await db.folder.findMany({
+            where: { id: { in: folderIds } },
+            select: {
+               files: {
+                  select: { public_id: true }
+               }
+            }
+         });
+         return res?.flatMap((folder) => folder.files.map((file) => file.public_id));
+      }),
    createFolder: publicProcedure
       .input(
          z.object({
@@ -21,6 +38,20 @@ export const foldersRouter = router({
          });
 
          return res;
+      }),
+   getFolderName: publicProcedure
+      .input(
+         z.object({
+            folderId: z.string().min(1, { message: 'Folder id is required' })
+         })
+      )
+      .query(async ({ input: { folderId } }) => {
+         const res = await db.folder.findFirst({
+            where: { id: folderId },
+            select: { folder_name: true }
+         });
+
+         return res?.folder_name;
       }),
    renameFolder: publicProcedure
       .input(

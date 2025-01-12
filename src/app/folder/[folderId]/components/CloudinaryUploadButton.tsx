@@ -7,15 +7,34 @@ import { toast } from 'sonner';
 interface CloudinaryUploadButtonProps {
    folderId: string;
    setFiles: Dispatch<SetStateAction<File[]>>;
+   setFileTypes: Dispatch<
+      SetStateAction<
+         {
+            name: string;
+            uid: string;
+         }[]
+      >
+   >;
 }
 
 const CloudinaryUploadButton: FunctionComponent<CloudinaryUploadButtonProps> = ({
    folderId,
-   setFiles
+   setFiles,
+   setFileTypes
 }) => {
+   const { data: folder_name, isLoading } = trpc.folder.getFolderName.useQuery({ folderId });
    const createMutation = trpc.file.createFile.useMutation({
       onSuccess: (file: any) => {
          setFiles((prevFiles) => [file as File, ...prevFiles]);
+         setFileTypes((prevTypes) => {
+            let foundType = false;
+
+            for (let types of prevTypes) {
+               if (types.name === file.type) foundType = true;
+            }
+
+            return [...prevTypes, { name: file.type, uid: file.type }];
+         });
          toast.success('Successfully uploaded file');
       },
       onError: () => {
@@ -24,10 +43,12 @@ const CloudinaryUploadButton: FunctionComponent<CloudinaryUploadButtonProps> = (
    });
 
    const handleUploadSuccess = ({ info }: CloudinaryEvent) => {
+      console.log(info);
       createMutation.mutate({
          folderId,
          file: {
-            filename: info.original_filename,
+            filename: info.public_id.split('/')[1],
+            public_id: info.public_id,
             asset_id: info.asset_id,
             bytes: info.bytes,
             type: info.path.split('.')[1],

@@ -5,6 +5,10 @@ import { getFormattedDateTime } from '@/lib/utils';
 import {
    Button,
    Chip,
+   Dropdown,
+   DropdownItem,
+   DropdownMenu,
+   DropdownTrigger,
    Input,
    Pagination,
    Spinner,
@@ -27,6 +31,8 @@ import DownloadFile from './DownloadFile';
 import FavoriteToggle from './FavoriteToggle';
 import RestoreButton from './RestoreButton';
 import TrashButton from './TrashButton';
+import DownloadZipButton from './DownloadZipButton';
+import { IoChevronDown } from 'react-icons/io5';
 
 interface FilesTableProps {
    files: File[];
@@ -34,6 +40,18 @@ interface FilesTableProps {
    folderId?: string;
    showHeaderButtons?: boolean;
    isLoading: boolean;
+   typeOptions?: {
+      name: string;
+      uid: string;
+   }[];
+   setFileTypes: Dispatch<
+      SetStateAction<
+         {
+            name: string;
+            uid: string;
+         }[]
+      >
+   >;
 }
 
 export const columns = [
@@ -48,17 +66,14 @@ export const columns = [
    { name: 'ACTIONS', uid: 'actions' }
 ];
 
-export const statusOptions = [
-   { name: 'Student', uid: 'student' },
-   { name: 'Instructor', uid: 'instructor' }
-];
-
 const FilesTable: FunctionComponent<FilesTableProps> = ({
    files,
    setFiles,
    folderId,
    showHeaderButtons = true,
-   isLoading
+   isLoading,
+   typeOptions,
+   setFileTypes
 }) => {
    const pathname = usePathname();
    const archivePath = pathname === '/archives';
@@ -67,6 +82,7 @@ const FilesTable: FunctionComponent<FilesTableProps> = ({
    const filePath = pathname === '/files';
    const [filterValue, setFilterValue] = useState('');
    const [selectedKeys, setSelectedKeys] = useState(new Set([]));
+   const [fileTypeFilter, setFileTypeFilter] = useState<string>('all');
    const [rowsPerPage, setRowsPerPage] = useState(5);
    const [sortDescriptor, setSortDescriptor] = useState({
       column: 'name',
@@ -74,6 +90,7 @@ const FilesTable: FunctionComponent<FilesTableProps> = ({
    });
    const [page, setPage] = useState(1);
    const hasSearchFilter = Boolean(filterValue);
+   const selectedFiles = [...(selectedKeys.values() as any)];
 
    const filteredItems = useMemo(() => {
       let filteredFiles = [...files];
@@ -88,8 +105,14 @@ const FilesTable: FunctionComponent<FilesTableProps> = ({
          );
       }
 
+      if (fileTypeFilter !== 'all' && Array.from(fileTypeFilter).length !== typeOptions?.length) {
+         filteredFiles = filteredFiles.filter((file) =>
+            Array.from(fileTypeFilter).includes(file.type!)
+         );
+      }
+
       return filteredFiles;
-   }, [files, filterValue]);
+   }, [files, filterValue, fileTypeFilter]);
 
    const pages = Math.ceil(filteredItems.length / rowsPerPage);
 
@@ -233,10 +256,12 @@ const FilesTable: FunctionComponent<FilesTableProps> = ({
                />
                {showHeaderButtons && (
                   <div className="flex gap-2">
+                     {selectedFiles.length != 0 && <DownloadZipButton assetIds={selectedFiles} />}
                      {!archivePath && !trashPath && !favoritePath && !filePath && (
                         <CloudinaryUploadButton
                            folderId={folderId!}
                            setFiles={setFiles}
+                           setFileTypes={setFileTypes}
                         />
                      )}
                      {trashPath ? (
@@ -255,6 +280,35 @@ const FilesTable: FunctionComponent<FilesTableProps> = ({
                            selectedKeys={selectedKeys}
                            setFiles={setFiles}
                         />
+                     )}
+                     {typeOptions && (
+                        <Dropdown>
+                           <DropdownTrigger className="hidden sm:flex">
+                              <Button
+                                 endContent={<IoChevronDown className="text-small" />}
+                                 variant="flat"
+                              >
+                                 File Type
+                              </Button>
+                           </DropdownTrigger>
+                           <DropdownMenu
+                              disallowEmptySelection
+                              aria-label="Table Columns"
+                              closeOnSelect={false}
+                              selectedKeys={fileTypeFilter}
+                              selectionMode="multiple"
+                              onSelectionChange={(value: any) => setFileTypeFilter(value)}
+                           >
+                              {typeOptions.map((type) => (
+                                 <DropdownItem
+                                    key={type.uid}
+                                    className="uppercase"
+                                 >
+                                    {type.name}
+                                 </DropdownItem>
+                              ))}
+                           </DropdownMenu>
+                        </Dropdown>
                      )}
                   </div>
                )}
@@ -278,6 +332,7 @@ const FilesTable: FunctionComponent<FilesTableProps> = ({
       );
    }, [
       filterValue,
+      fileTypeFilter,
       onRowsPerPageChange,
       files.length,
       onSearchChange,

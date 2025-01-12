@@ -7,11 +7,20 @@ import { useEffect, useState } from 'react';
 
 function Page() {
    const [files, setFiles] = useState<File[]>([]);
+   const [fileTypes, setFileTypes] = useState<{ name: string; uid: string }[]>([]);
    const { data: fileData, isLoading: fetchingFiles } = trpc.file.getArchivedFiles.useQuery();
+   const { data: fileTypesData, isLoading: fetchingTypes } =
+      trpc.file.getFolderFileTypes.useQuery();
 
    useEffect(() => {
       if (!fetchingFiles && fileData) setFiles(fileData as any);
    }, [fileData, fetchingFiles]);
+
+   useEffect(() => {
+      if (!fetchingTypes && fileTypesData) {
+         setFileTypes(fileTypesData);
+      }
+   }, [fileTypesData, fetchingTypes]);
 
    return (
       <BaseContainer>
@@ -20,6 +29,8 @@ function Page() {
             files={files as any}
             setFiles={setFiles}
             isLoading={fetchingFiles}
+            typeOptions={fileTypes || fetchingTypes}
+            setFileTypes={setFileTypes}
          />
       </BaseContainer>
    );

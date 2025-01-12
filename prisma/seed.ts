@@ -24,13 +24,13 @@ async function main() {
    //    type: 'jpg',
    //    secure_url: 'http://localhost:3000'
    // });
-   const res = await prisma.file.updateMany({
-      data: {
-         tag: 'none',
-         tag_color: 'default'
-      }
+   const res = await prisma.file.findMany({
+      where: {
+         asset_id: { in: ['ba10b1e7868e3f52be45299af0ba5bd9', '03afdca1415d412bd97c18fb2bfc0a6a'] }
+      },
+      select: { public_id: true }
    });
-   console.log(res);
+   console.log(res?.map((file) => file.public_id));
 }
 
 const createUser = async ({
@@ -122,12 +122,14 @@ const createFile = async (
    {
       filename,
       asset_id,
+      public_id,
       bytes,
       type,
       secure_url
    }: {
       filename: string;
       asset_id: string;
+      public_id: string;
       bytes: number;
       type: string;
       secure_url: string;
@@ -137,6 +139,7 @@ const createFile = async (
       data: {
          filename,
          asset_id,
+         public_id,
          bytes,
          type,
          secure_url,

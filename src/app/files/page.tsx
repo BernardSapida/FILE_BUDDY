@@ -12,6 +12,7 @@ interface PageProps {
 
 const Page: FunctionComponent<PageProps> = ({ params: { folderId } }) => {
    const [files, setFiles] = useState<File[]>([]);
+   const [fileTypes, setFileTypes] = useState<{ name: string; uid: string }[]>([]);
    const [dates, setDates] = useState<{ startDate?: Date; endDate?: Date }>({
       startDate: undefined,
       endDate: undefined
@@ -20,10 +21,18 @@ const Page: FunctionComponent<PageProps> = ({ params: { folderId } }) => {
       startDate: dates.startDate,
       endDate: dates.endDate
    });
+   const { data: fileTypesData, isLoading: fetchingTypes } =
+      trpc.file.getFolderFileTypes.useQuery();
 
    useEffect(() => {
       if (!fetchingFiles && filesData) setFiles(filesData as any);
    }, [filesData, fetchingFiles]);
+
+   useEffect(() => {
+      if (!fetchingTypes && fileTypesData) {
+         setFileTypes(fileTypesData);
+      }
+   }, [fileTypesData, fetchingTypes]);
 
    return (
       <BaseContainer>
@@ -33,7 +42,9 @@ const Page: FunctionComponent<PageProps> = ({ params: { folderId } }) => {
             files={files}
             setFiles={setFiles}
             folderId={folderId}
-            isLoading={fetchingFiles}
+            isLoading={fetchingFiles || fetchingTypes}
+            typeOptions={fileTypes}
+            setFileTypes={setFileTypes}
          />
       </BaseContainer>
    );

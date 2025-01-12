@@ -26,7 +26,7 @@ export default clerkMiddleware(async (auth, request: NextRequest) => {
    }
 
    // Fetch user data and check restrictions
-   const response = await fetch(`${process.env.BASE_URL}/api/check-user-restriction`, {
+   const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/check-user-restriction`, {
       next: {
          revalidate: 3600
       },

@@ -10,9 +10,12 @@ import { useEffect, useState } from 'react';
 function Page() {
    const [folders, setFolders] = useState<Folder[]>([]);
    const [files, setFiles] = useState<File[]>([]);
+   const [fileTypes, setFileTypes] = useState<{ name: string; uid: string }[]>([]);
    const { data: foldersData, isLoading: fetchingFolders } =
       trpc.folder.getFavoritedFolders.useQuery();
    const { data: filesData, isLoading: fetchingFiles } = trpc.file.getFavoritedFiles.useQuery();
+   const { data: fileTypesData, isLoading: fetchingTypes } =
+      trpc.file.getFolderFileTypes.useQuery();
 
    useEffect(() => {
       if (!fetchingFolders && foldersData) setFolders(foldersData as any);
@@ -21,6 +24,12 @@ function Page() {
    useEffect(() => {
       if (!fetchingFiles && filesData) setFiles(filesData as any);
    }, [filesData, fetchingFiles]);
+
+   useEffect(() => {
+      if (!fetchingTypes && fileTypesData) {
+         setFileTypes(fileTypesData);
+      }
+   }, [fileTypesData, fetchingTypes]);
 
    return (
       <BaseContainer>
@@ -44,6 +53,8 @@ function Page() {
                   files={files as any}
                   setFiles={setFiles}
                   isLoading={fetchingFiles}
+                  typeOptions={fileTypes}
+                  setFileTypes={setFileTypes}
                />
             </Tab>
          </Tabs>

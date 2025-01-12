@@ -6,6 +6,7 @@ export const fileSchema = z.object({
   id: z.string(),
   filename: z.string(),
   asset_id: z.string(),
+  public_id: z.string(),
   bytes: z.number().int(),
   type: z.string(),
   tag: z.string(),

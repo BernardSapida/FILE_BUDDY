@@ -20,6 +20,14 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum TagColor {
+  default
+  primary
+  success
+  secondary
+  danger
+}
+
 model User {
   id          String @id @default(auto()) @map("_id") @db.ObjectId
   clerkUserId String @unique
@@ -46,18 +54,11 @@ model Folder {
   user   User   @relation(fields: [userId], references: [id])
 }
 
-enum TagColor {
-  default
-  primary
-  success
-  secondary
-  danger
-}
-
 model File {
   id         String   @id @default(auto()) @map("_id") @db.ObjectId
   filename   String
   asset_id   String   @unique
+  public_id  String   @unique
   bytes      Int
   type       String
   tag        String   @default("none")

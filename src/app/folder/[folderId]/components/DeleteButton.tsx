@@ -52,7 +52,10 @@ const DeleteButton: FunctionComponent<DeleteButtonProps> = ({ selectedKeys, setF
       };
 
       try {
-         const response = await fetch('api/cloudinary', requestOptions);
+         const response = await fetch(
+            `${process.env.NEXT_PUBLIC_BASE_URL}/api/cloudinary`,
+            requestOptions
+         );
          const data = await response.json();
          console.log(data);
       } catch (error) {
