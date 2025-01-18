@@ -45,10 +45,6 @@ export default function App() {
                return todo;
             })
          ]);
-      },
-      onError: () => {
-         toast.error('There was an error, please try again');
-         setLoading(false);
       }
    });
    const deleteMutation = trpc.todo.deleteTodo.useMutation({
@@ -57,10 +53,6 @@ export default function App() {
          formRef.current?.reset();
          setTodos((prevTodos) => prevTodos.filter(({ id }) => id !== data.id));
          toast.success('Successfully removed todo');
-      },
-      onError: () => {
-         toast.error('There was an error, please try again');
-         setLoading(false);
       }
    });
    const doneTodos = todos.filter(({ finished }) => finished).length;
