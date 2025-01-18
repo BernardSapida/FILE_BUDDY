@@ -22,18 +22,18 @@ const CloudinaryUploadButton: FunctionComponent<CloudinaryUploadButtonProps> = (
    setFiles,
    setFileTypes
 }) => {
-   const { data: folder_name, isLoading } = trpc.folder.getFolderName.useQuery({ folderId });
    const createMutation = trpc.file.createFile.useMutation({
       onSuccess: (file: any) => {
          setFiles((prevFiles) => [file as File, ...prevFiles]);
          setFileTypes((prevTypes) => {
-            let foundType = false;
+            let found = false;
 
             for (let types of prevTypes) {
-               if (types.name === file.type) foundType = true;
+               if (types.name === file.type) found = true;
             }
 
-            return [...prevTypes, { name: file.type, uid: file.type }];
+            if (!found) return [...prevTypes, { name: file.type, uid: file.type }];
+            return prevTypes;
          });
          toast.success('Successfully uploaded file');
       },

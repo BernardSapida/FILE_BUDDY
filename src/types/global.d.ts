@@ -75,3 +75,9 @@ type CloudinaryEvent = {
       thumbnail_url: string;
    };
 };
+
+type Todo = {
+   id: string;
+   name: string;
+   finished: boolean;
+};

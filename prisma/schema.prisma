@@ -73,3 +73,10 @@ model File {
   folderId String @db.ObjectId
   folder   Folder @relation(fields: [folderId], references: [id])
 }
+
+model Todo {
+  id          String  @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  finished    Boolean @default(false)
+  clerkUserId String
+}
