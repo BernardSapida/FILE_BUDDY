@@ -43,7 +43,7 @@ model User {
 
 model Folder {
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  folder_name String
+  folder_name String   @unique
   files       File[]
   favorited   Boolean  @default(false)
   trashed     Boolean  @default(false)
@@ -56,7 +56,7 @@ model Folder {
 
 model File {
   id         String   @id @default(auto()) @map("_id") @db.ObjectId
-  filename   String
+  filename   String   @unique
   asset_id   String   @unique
   public_id  String   @unique
   bytes      Int

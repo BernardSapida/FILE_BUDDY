@@ -41,8 +41,8 @@ const CreateFolderModal: FunctionComponent<CreateFolderModalProps> = ({ setFolde
          toast.success('Successfully created folder');
          onClose();
       },
-      onError: () => {
-         toast.error('There was an error, please try again');
+      onError: (error) => {
+         toast.error('Folder name should be unique');
          setLoading(false);
       }
    });
@@ -69,6 +69,7 @@ const CreateFolderModal: FunctionComponent<CreateFolderModalProps> = ({ setFolde
          <Modal
             isOpen={isOpen}
             onOpenChange={onOpenChange}
+            placement="center"
          >
             <ModalContent>
                {() => (

@@ -43,7 +43,7 @@ const ChangeFilenameModal: FunctionComponent<ChangeFilenameModalProps> = ({
          setLoading(false);
       },
       onError: () => {
-         toast.error('There was an error, please try again');
+         toast.error('Filename should be unique');
          setLoading(false);
       }
    });
