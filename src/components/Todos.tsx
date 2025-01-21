@@ -4,7 +4,6 @@ import {
    DrawerContent,
    DrawerHeader,
    DrawerBody,
-   DrawerFooter,
    Button,
    useDisclosure
 } from '@heroui/react';
@@ -12,8 +11,8 @@ import { Checkbox, Form, Input } from '@nextui-org/react';
 import { useEffect, useRef, useState } from 'react';
 import { FiTrash2 } from 'react-icons/fi';
 import { LuListTodo } from 'react-icons/lu';
-import { MdCreate } from 'react-icons/md';
 import { toast } from 'sonner';
+import { useUser } from '@clerk/nextjs';
 
 export default function App() {
    const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure();
@@ -21,6 +20,7 @@ export default function App() {
    const [todos, setTodos] = useState<Todo[]>([]);
    const [loading, setLoading] = useState<boolean>(false);
    const { data, isLoading } = trpc.todo.getTodos.useQuery();
+   const { isSignedIn } = useUser();
    const createMutation = trpc.todo.createTodo.useMutation({
       onSuccess: (data) => {
          setLoading(false);
@@ -78,13 +78,13 @@ export default function App() {
    };
 
    useEffect(() => {
-      if (!isLoading) setTodos(data!);
-   }, []);
+      if (!isLoading && data) setTodos(data);
+   }, [isLoading]);
 
    return (
       <>
          <Button
-            className="fixed bottom-10 right-10 rounded-full"
+            className={`${!isSignedIn && 'hidden'} fixed bottom-10 right-10 z-10 rounded-full shadow-sm`}
             color="primary"
             size="lg"
             onPress={onOpen}
@@ -135,6 +135,9 @@ export default function App() {
                         </Form>
                      </DrawerHeader>
                      <DrawerBody className="overflow-y-scroll">
+                        {isLoading && (
+                           <p className="text-center text-default-400">Loading tasks...</p>
+                        )}
                         {todos.length === 0 && (
                            <p className="text-center text-default-400">No tasks yet! Add some</p>
                         )}
